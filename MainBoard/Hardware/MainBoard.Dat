@@ -1,0 +1,46 @@
+Field=Comment~String~Comment~100|Field=Description~String~Description~100|Field=Designator~String~Designator~100|Field=Footprint~String~Footprint~100|Field=LibRef~String~LibRef~100|Field=Quantity~Integer~Quantity~100|ReportField=Currency~<none>|ReportField=ProductionQuantity~1|ReportField=ProjectFileName~MainBoard.PrjPCB|ReportField=ProjectFullPath~C:\Users\tlan\Documents\GitHub\Robot\MainBoard\Hardware\MainBoard.PrjPCB|ReportField=Title~Bill of Materials For Project [MainBoard.PrjPCB] (No PCB Document Selected)|ReportField=TotalQuantity~85|ReportField=ReportTime~22:22:08|ReportField=ReportDate~2017/10/9|ReportField=ReportDateTime~2017/10/9 22:22:08|ReportField=OutputName~Bill of Materials|ReportField=OutputType~BOM_PartType|ReportField=GeneratorName~BOM|ReportField=GeneratorDescription~Bill of Materials|ReportField=VariantName~None|ReportField=Address1~|ReportField=Address2~|ReportField=Address3~|ReportField=Address4~|ReportField=ApprovedBy~|ReportField=Author~|ReportField=CheckedBy~|ReportField=CompanyName~|ReportField=CurrentDate~2017/10/9|ReportField=CurrentTime~22:20:55|ReportField=Date~|ReportField=DocumentFullPathAndName~C:\Users\tlan\Documents\GitHub\Robot\MainBoard\Hardware\MainBoard.SchDoc|ReportField=DocumentName~MainBoard.SchDoc|ReportField=DocumentNumber~|ReportField=DrawnBy~|ReportField=Engineer~|ReportField=ImagePath~|ReportField=ModifiedDate~2017/10/6|ReportField=Organization~|ReportField=ProjectName~MainBoard.PrjPCB|ReportField=Revision~|ReportField=Rule~|ReportField=SheetNumber~|ReportField=SheetTotal~|ReportField=Time~|ReportField=Title~|ReportField=DataSourceFileName~MainBoard.PrjPCB|ReportField=DataSourceFullPath~C:\Users\tlan\Documents\GitHub\Robot\MainBoard\Hardware\MainBoard.PrjPCB
+BAT|Battery|BT1|SIP2 - duplicate|BATTERY|1
+470uF/50V||C1|RB2|CAP POL|1
+Cap|Capacitor|C2, C4, C5, C6, C12, C13, C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C24, C25|0603|Cap|18
+10uF/10V||C3|RB2|CAP POL|1
+47uF/10V||C7|RB2|CAP POL|1
+20P|Capacitor|C8, C9, C10, C11|0603|CAP|4
+5V|Circuit Breaker|CB1|SIP2 - duplicate|Circuit Breaker|1
+3.3V|Circuit Breaker, Connector|CB2, JP1|SIP2 - duplicate|Circuit Breaker, CON2|2
+Fuse|Fuse|F1|1808Shell|Fuse 2|1
+POWER|Connector|J1|SIP2-150|CON2|1
+USART2|Connector|J2|sip4|CON4|1
+RS485|Connector|J3|sip4|CON4|1
+MotorA|Header, 2-Pin|JP2|SIP2-150|Header 2|1
+MotorB|Header, 2-Pin|JP3|SIP2-150|Header 2|1
+MotorC|Header, 2-Pin|JP4|SIP2-150|Header 2|1
+MotorD|Header, 2-Pin|JP5|SIP2-150|Header 2|1
+PWR||LD1|0603|PHOTO|1
+LED2||LD2|0603|PHOTO|1
+LED3||LD3|0603|PHOTO|1
+ST-Link V2/SWD|Header, 5-Pin, Dual row|P1|HDR2X5|Header 5X2|1
+MPU9255|Header, 10-Pin|P2|HDR1X10|Header 10|1
+EncoderA|Header, 4-Pin|P3|HDR1X4|Header 4|1
+EncoderB|Header, 4-Pin|P4|HDR1X4|Header 4|1
+EncoderC|Header, 4-Pin|P5|HDR1X4|Header 4|1
+EncoderD|Header, 4-Pin|P6|HDR1X4|Header 4|1
+NRF2401|Header, 4-Pin, Dual row|P7|HDR2X4|Header 4X2|1
+Driver|Header, 20-Pin, Dual row|P8|HDR2X20|Header 20X2|1
+Header 10|Header, 10-Pin|P9, P10|HDR1X10|Header 10|2
+5V GND|Header, 2-Pin|P11|HDR1X2|Header 2|1
+1K|Resistor 0402 / 0603 / 0805|R1, R19, R20|0603|Resistor_ST|3
+22|Resistor 0402 / 0603 / 0805|R2, R3, R4, R5, R6, R7, R8|0603|Resistor_ST|7
+390||R9, R10, R11, R12, R13, R14, R15, R16|0603|RES|8
+100K|Resistor 0402 / 0603 / 0805|R17|0603|Resistor_ST|1
+10K|Resistor 0402 / 0603 / 0805|R18|0603|Resistor_ST|1
+SW-POWER|Single-Pole, Single-Throw Switch|S1|SPST-2|SW-SPST|1
+RST|Switch|S2|key2|SW-PB|1
+Key1|Switch|S3|key2|SW-PB|1
+Key2|Switch|S4|key2|SW-PB|1
+||U1|quad64|STM32F103R8|1
+TLE5205-2G|5 A H-Bridge for DC-Motor Applications, 6 to 40 V, 220 mOhm RDS(on), PG-TO263-7-1, Reel, Green|U2, U3, U4, U5|INF-PG-TO263-7-1_L|TLE5205-2G|4
+7805|3-Terminal Positive Regulator|U6|ktt|LM330KC|1
+LM1117||U7|SPP3|LM1117|1
+3082||U8|so-8|75176|1
+32768|Crystal|Y1|sip2|CRYSTAL|1
+8M|Crystal|Y2|XTAL1|CRYSTAL|1
