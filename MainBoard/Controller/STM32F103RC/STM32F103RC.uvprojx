@@ -371,9 +371,9 @@
             <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD</Define>
+              <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD,EMPL_TARGET_STM32,MPU6050</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Libraries\STM32F10x_StdPeriph_Driver\inc;.\Libraries\CMSIS\CM3\CoreSupport;.\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;.\User</IncludePath>
+              <IncludePath>.\Libraries\STM32F10x_StdPeriph_Driver\inc;.\Libraries\CMSIS\CM3\CoreSupport;.\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x;.\User;.\eMPL</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -451,6 +451,16 @@
               <FileType>1</FileType>
               <FilePath>.\User\BTModule.c</FilePath>
             </File>
+            <File>
+              <FileName>I2CRoutines.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\I2CRoutines.c</FilePath>
+            </File>
+            <File>
+              <FileName>MPU6050DMP.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\MPU6050DMP.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -505,6 +515,26 @@
               <FileName>misc.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Libraries\STM32F10x_StdPeriph_Driver\src\misc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dma.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>eMPL</GroupName>
+          <Files>
+            <File>
+              <FileName>inv_mpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\eMPL\inv_mpu.c</FilePath>
+            </File>
+            <File>
+              <FileName>inv_mpu_dmp_motion_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\eMPL\inv_mpu_dmp_motion_driver.c</FilePath>
             </File>
           </Files>
         </Group>

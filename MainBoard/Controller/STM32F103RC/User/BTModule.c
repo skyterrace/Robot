@@ -212,19 +212,19 @@ void USART_GetChar(uint8_t nChar) //串口接收到一个字节
 
 void USART_Process(void) //处理数据帧
 {
-//	uint8_t i;
+	uint8_t i;
 	uint16_t nVal;
 	float fKp,fKi,fKd;
 	if(USART_FrameFlag == 1)
 	{
-//		//将数据原封不动发送回去
-//		for(i=0;i<FRAME_BYTE_LENGTH;i++)
-//		{
-//			USART_SendData(USART2,USART_Rx2Buff[i]);
-//			while(USART_GetFlagStatus(USART2, USART_FLAG_TC)==RESET);
-//		}
+		//将数据原封不动发送回去
+		for(i=0;i<FRAME_BYTE_LENGTH;i++)
+		{
+			USART_SendData(USART2,USART_Rx2Buff[i]);
+			while(USART_GetFlagStatus(USART2, USART_FLAG_TC)==RESET);
+		}
 		
-		if(USART_Rx2Buff[1] == 0x11) //如果命令字节等于0x11，则是设置PID参数指令
+		if(USART_Rx2Buff[1] == 0x11) //如果命令字节等于0x11，则是设置PID参数指令，这些协议可以自己定义
 		{
 			//Kp值
 			nVal = (USART_Rx2Buff[2]<<8) + USART_Rx2Buff[3];
@@ -236,6 +236,12 @@ void USART_Process(void) //处理数据帧
 			nVal = (USART_Rx2Buff[6]<<8) + USART_Rx2Buff[7];
 			fKp = (float)nVal/100.0;
 			MotorController_SetPIDParam(fKp,fKi,fKd);
+		}
+		else if(USART_Rx2Buff[1] == 0x12) //如果命令字节等于0x12，则是设置加速度参数指令，这些协议可以自己定义
+		{
+			//2、3字节是加速度值
+			nVal = (USART_Rx2Buff[2]<<8) + USART_Rx2Buff[3];
+			MotorController_SetAcceleration(nVal);
 		}
 		//处理完毕，将标志清0
 		USART_FrameFlag = 0; 

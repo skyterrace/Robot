@@ -6,6 +6,15 @@
 #include "MotorController.h"
 #include "BTModule.h"
 
+/*如果不需要用MPU6050，则在项目文件中，将I2CRoutines.c和MPU6050DMP.c源代码文件移除*/
+/*并且在预编译符号定义中将MPU6050和EMPL_TARGET_STM32的符号定义删除*/
+
+#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+#include "MPU6050DMP.h"
+struct dmpYawPitchRoll_s sMPU6050YawPitchRoll;
+struct MPU6050_RawData_s sIMUVar;
+#endif
+
 //RCC_Configuration(), NVIC_Configuration(), GPIO_Config() 在引用前要声明一下。
 void RCC_Configuration(void); //系统时钟配置
 void NVIC_Configuration(void); //中断配置
@@ -14,7 +23,7 @@ void GPIO_Config(void); //通用输入输出端口配置
 //全局变量
 uint16_t n10msCount;
 uint8_t b100msFlag;
-uint16_t pwm;
+
 int16_t nSpeedCnt;
 int32_t nEncoderACount,nEncoderACount_Last;
 int32_t nEncoderBCount,nEncoderBCount_Last;
@@ -22,7 +31,6 @@ int32_t nSpeed;
 int main(void)
 {
 
-	uint8_t nMotorDir;
 	RCC_Configuration(); //时钟初始化
 	GPIO_Config(); //端口初始化
 	NVIC_Configuration();  //中断初始化
@@ -38,8 +46,12 @@ int main(void)
 	MotorController_Init(390,60,2);
 	MotorController_Enable(ENABLE);
 	MotorController_SetAcceleration(100);
-	pwm = PWM_DUTY_LIMIT/2;
-	nMotorDir = 0;
+
+	
+#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+	MPU6050_Init();
+#endif
+
 	Delay_ms(1000);
 	nSpeed = 0;
 	while(1)
@@ -108,6 +120,26 @@ int main(void)
 
 			}
 			
+#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+			if(n10msCount%2 == 1)  //奇数个10ms时，读取航向角，横滚角，俯仰角
+			{
+				if(MPU6050_GetYawPitchRoll(&sMPU6050YawPitchRoll))
+				{
+					USART_OUT(USART2,"%f %f %f\r\n",sMPU6050YawPitchRoll.yaw*180/3.1415926,
+						sMPU6050YawPitchRoll.pitch*180/3.1415926,
+						sMPU6050YawPitchRoll.roll*180/3.1415926);
+				}
+			}
+			else if (n10msCount%2 == 0)  //偶数个10ms时，读取加速度计和陀螺仪数据并通过串口传输
+			{
+				if(MPU6050_ReadRawData(&sIMUVar))
+				{
+					USART_OUT(USART2,"%d %d %d %d %d %d\r\n",sIMUVar.ax,sIMUVar.ay,sIMUVar.az,
+						sIMUVar.gx,sIMUVar.gy,sIMUVar.gz);					
+				}
+			}
+#endif			
+			
 			if(b100msFlag == 1)
 			{
 				b100msFlag = 0;
@@ -117,10 +149,10 @@ int main(void)
 				nSpeedCnt = nEncoderBCount - nEncoderBCount_Last;
 				
 				//通过蓝牙串口发送速度
-				//USART_OUT(USART2,"A:%d;B:%d\r\n",nEncoderACount - nEncoderACount_Last,nSpeedCnt);
+				USART_OUT(USART2,"%d %d\r\n",nEncoderACount - nEncoderACount_Last,nSpeedCnt);
 				
 				//通过蓝牙串口发送累计脉冲数（里程）
-				USART_OUT(USART2,"A:%d;B:%d\r\n",nEncoderACount,nEncoderBCount);
+				//USART_OUT(USART2,"%d  %d\r\n",nEncoderACount,nEncoderBCount);
 				
 				nEncoderACount_Last = nEncoderACount;
 				nEncoderBCount_Last = nEncoderBCount;
@@ -183,7 +215,7 @@ void RCC_Configuration(void)
 /*中断配置函数*/
 void NVIC_Configuration(void)
 {
-  NVIC_InitTypeDef NVIC_InitStructure;  //NVIC中断向量结构体
+//  NVIC_InitTypeDef NVIC_InitStructure;  //NVIC中断向量结构体
 	RCC_ClocksTypeDef RCC_Clocks;  //RCC时钟结构体
   /* Configure the NVIC Preemption Priority Bits */  
   /* Configure one bit for preemption priority */
@@ -191,19 +223,19 @@ void NVIC_Configuration(void)
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);		   
   
 
-	  /* Enable the RTC Interrupt 使能实时时钟中断*/
-  NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;					//配置外部中断源（秒中断） 
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);  
+//	  /* Enable the RTC Interrupt 使能实时时钟中断*/
+//  NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;					//配置外部中断源（秒中断） 
+//  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+//  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+//  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//  NVIC_Init(&NVIC_InitStructure);  
 	
-	/*使能定时中断*/
-	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;												//指定中断源
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;							
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;										//指定响应优先级别
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	
-	NVIC_Init(&NVIC_InitStructure); 
+//	/*使能定时中断*/
+//	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;												//指定中断源
+//  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;							
+//  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;										//指定响应优先级别
+//  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	
+//	NVIC_Init(&NVIC_InitStructure); 
 	
 	//设置嘀嗒时钟中断
 	RCC_GetClocksFreq(&RCC_Clocks);		//获取系统时钟
@@ -217,8 +249,6 @@ void NVIC_Configuration(void)
 /*端口配置函数*/
 void GPIO_Config(void)
 {
-	
-	
 	//使能GPIOA/GPIOC的总线，否则端口不能工作，如果不用这个端口，可以不用使能。
 	
 }
