@@ -66,7 +66,7 @@ void MotorController_Init(uint16_t nEncoderResolution, uint8_t nWheelDiameter,ui
 	MotorController_KI = MOTOR_CONTROLLER_KI;
 	MotorController_KD = MOTOR_CONTROLLER_KD;
 }
-void MotorController_SetAcceleration(uint16_t nAcc) //设置轮子的加速度值，单位mm/s/s，设为0则加速度为无穷
+void MotorController_SetAcceleration(uint16_t nAcc) //设置轮子的加速度值，单位mm/s/s，设为0相当于最小值1。
 {
 	MotorController_Acc = nAcc * MOTOR_CONTROLLER_PERIOD / 1000 + 1;
 }

@@ -1,10 +1,11 @@
 #include "MPU6050DMP.h"
 #include "stdio.h"
 #include "math.h"
+#include "I2CRoutines.h"
 
 /*在使用本库前，先在预编译符号定义中定义MPU6050和EMPL_TARGET_STM32*/
 /*在delay.c中也有部分本库需要的代码，注意#if defined MPU6050部分*/
-
+/*使用DMP功能时，需要在项目选项Target里启用Use MicroLib*/
 
 /* Buffer of data to be received by I2C1 */
 uint8_t IIC_Buffer_Rx[25];
@@ -26,7 +27,7 @@ static signed char gyro_orientation[9] = {1,  0,  0,
 //long quat[4];
 //unsigned long timestamp;
 	
-//struct dmpEuler_s sEuler;
+////struct dmpEuler_s sEuler;
 //struct dmpGravity_s sGravity;
 //struct dmpQuaternion_s sQuaternion;
 //struct dmpYawPitchRoll_s sYawPitchRoll;
@@ -38,6 +39,19 @@ static signed char gyro_orientation[9] = {1,  0,  0,
 int MPU6050_Init(void)
 {
 	Status rtn;
+	NVIC_InitTypeDef NVIC_InitStructure;  //NVIC中断向量结构体
+
+	NVIC_InitStructure.NVIC_IRQChannel = I2C1_EV_IRQn;					//配置I2C1EV中断
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure); 
+	
+	NVIC_InitStructure.NVIC_IRQChannel = I2C1_ER_IRQn;					//配置I2C1ER中断 
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure); 
 	
 	I2C_LowLevel_Init(MPU6050_I2C);
 	//Single_WriteI2C(PWR_MGMT_1, 0x00);	//解除休眠状态
@@ -113,6 +127,8 @@ uint16_t MPU6050_GetData(uint8_t REG_Address)
 //**************************************
 int MPU6050_ReadRawData(struct MPU6050_RawData_s *s_IMUVar)
 {
+	
+	/* //下面是直接读寄存器的代码
 	Status rtn;
 	char H,L;
 
@@ -156,6 +172,47 @@ int MPU6050_ReadRawData(struct MPU6050_RawData_s *s_IMUVar)
 		return Error;
 	}
 	return Success;
+	*/
+
+	  //下面是读FIFO的代码，陀螺仪数据有纠偏
+	short gyro[3], accel[3], sensors;
+	unsigned char more;
+  long quat[4];
+	unsigned long timestamp;
+	int rtn;
+	if(mpu_set_dmp_state(1))
+	{
+		return 0;
+	}
+	do
+	{
+		rtn=dmp_read_fifo( gyro, accel, quat, &timestamp, &sensors, &more );
+	}
+	while(more);
+	
+	if(!rtn)
+	{
+		if((sensors & INV_XYZ_ACCEL) || (sensors & INV_XYZ_GYRO))
+		{
+			s_IMUVar->ax = accel[0];
+			s_IMUVar->ay = accel[1];
+			s_IMUVar->az = accel[2];
+			
+			s_IMUVar->gx = gyro[0];
+			s_IMUVar->gy = gyro[1];
+			s_IMUVar->gz = gyro[2];
+		}
+		else
+		{
+			return 0;	
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	return 1;
+	
 }
 
 
@@ -450,4 +507,246 @@ int MPU6050_Read_Ext_Sens_Data(uint8_t RegAddr,uint8_t *buff, uint8_t length)
 	rtn = I2C_Master_BufferRead(MPU6050_I2C, buff,length,DMA, MPU6050_Addr);
 	if(rtn != Success) return Error;
 	return rtn;
+}
+
+
+/*以下为I2C中断处理函数*/
+
+__IO uint8_t Tx_Idx1=0, Rx_Idx1=0;
+extern __IO uint32_t I2CDirection;
+extern __IO uint32_t NumbOfBytes1;
+extern __IO uint8_t Address;
+
+/**
+  * @brief  This function handles I2C1 Event interrupt request.
+  * @param  None
+  * @retval : None
+  */
+void I2C1_EV_IRQHandler(void)
+{
+
+    __IO uint32_t SR1Register =0;
+    __IO uint32_t SR2Register =0;
+    
+
+
+#ifdef SLAVE_DMA_USE
+    /* Read SR1 register */
+    SR1Register = I2C1->SR1;
+
+    /* If ADDR is set */
+    if ((SR1Register & 0x0002) == 0x0002)
+    {
+        /* In slave Transmitter/Receiver mode, when using DMA, it is recommended to update the buffer 
+          base address and the buffer size before clearing ADDR flag. In fact, the only
+          period when the slave has control  on the bus(SCL is stretched so master can not initiate 
+          transfers) is the period between ADDR is set and ADDR is cleared. Otherwise, the master can
+          initiate transfers and the buffer size & the buffer address have not yet been updated.*/
+
+        /* Update the DMA channels memory base address and count */
+        I2C_DMAConfig (I2C1, Buffer_Tx1, 0xFFFF, I2C_DIRECTION_TX);
+        I2C_DMAConfig (I2C1, Buffer_Rx1, 0xFFFF, I2C_DIRECTION_RX);
+        /* Clear ADDR by reading SR2 register */
+        SR2Register = I2C1->SR2;
+    }
+#else
+    /* Read the I2C1 SR1 and SR2 status registers */
+    SR1Register = I2C1->SR1;
+    SR2Register = I2C1->SR2;
+
+    /* If I2C1 is slave (MSL flag = 0) */
+    if ((SR2Register &0x0001) != 0x0001)
+    {
+        /* If ADDR = 1: EV1 */
+        if ((SR1Register & 0x0002) == 0x0002)
+        {
+            /* Clear SR1Register and SR2Register variables to prepare for next IT */
+            SR1Register = 0;
+            SR2Register = 0;
+            /* Initialize the transmit/receive counters for next transmission/reception
+            using Interrupt  */
+            Tx_Idx1 = 0;
+            Rx_Idx1 = 0;
+        }
+        /* If TXE = 1: EV3 */
+        if ((SR1Register & 0x0080) == 0x0080)
+        {
+            /* Write data in data register */
+            I2C1->DR = IIC_Buffer_Tx[Tx_Idx1++];
+            SR1Register = 0;
+            SR2Register = 0;
+        }
+        /* If RXNE = 1: EV2 */
+        if ((SR1Register & 0x0040) == 0x0040)
+        {
+            /* Read data from data register */
+            IIC_Buffer_Rx[Rx_Idx1++] = I2C1->DR;
+            SR1Register = 0;
+            SR2Register = 0;
+
+        }
+        /* If STOPF =1: EV4 (Slave has detected a STOP condition on the bus */
+        if (( SR1Register & 0x0010) == 0x0010)
+        {
+            I2C1->CR1 |= CR1_PE_Set;
+            SR1Register = 0;
+            SR2Register = 0;
+
+        }
+    } /* End slave mode */
+
+#endif
+
+    /* If SB = 1, I2C1 master sent a START on the bus: EV5) */
+    if ((SR1Register &0x0001) == 0x0001)
+    {
+
+        /* Send the slave address for transmssion or for reception (according to the configured value
+            in the write master write routine */
+        I2C1->DR = Address;
+        SR1Register = 0;
+        SR2Register = 0;
+    }
+    /* If I2C1 is Master (MSL flag = 1) */
+
+    if ((SR2Register &0x0001) == 0x0001)
+    {
+        /* If ADDR = 1, EV6 */
+        if ((SR1Register &0x0002) == 0x0002)
+        {
+            /* Write the first data in case the Master is Transmitter */
+            if (I2CDirection == I2C_DIRECTION_TX)
+            {
+                /* Initialize the Transmit counter */
+                Tx_Idx1 = 0;
+                /* Write the first data in the data register */
+                I2C1->DR = IIC_Buffer_Tx[Tx_Idx1++];
+                /* Decrement the number of bytes to be written */
+                NumbOfBytes1--;
+                /* If no further data to be sent, disable the I2C BUF IT
+                in order to not have a TxE  interrupt */
+                if (NumbOfBytes1 == 0)
+                {
+                    I2C1->CR2 &= (uint16_t)~I2C_IT_BUF;
+                }
+
+            }
+            /* Master Receiver */
+            else
+
+            {
+                /* Initialize Receive counter */
+                Rx_Idx1 = 0;
+                /* At this stage, ADDR is cleared because both SR1 and SR2 were read.*/
+                /* EV6_1: used for single byte reception. The ACK disable and the STOP
+                Programming should be done just after ADDR is cleared. */
+                if (NumbOfBytes1 == 1)
+                {
+                    /* Clear ACK */
+                    I2C1->CR1 &= CR1_ACK_Reset;
+                    /* Program the STOP */
+                    I2C1->CR1 |= CR1_STOP_Set;
+                }
+            }
+            SR1Register = 0;
+            SR2Register = 0;
+
+        }
+        /* Master transmits the remaing data: from data2 until the last one.  */
+        /* If TXE is set */
+        if ((SR1Register &0x0084) == 0x0080)
+        {
+            /* If there is still data to write */
+            if (NumbOfBytes1!=0)
+            {
+                /* Write the data in DR register */
+                I2C1->DR = IIC_Buffer_Tx[Tx_Idx1++];
+                /* Decrment the number of data to be written */
+                NumbOfBytes1--;
+                /* If  no data remains to write, disable the BUF IT in order
+                to not have again a TxE interrupt. */
+                if (NumbOfBytes1 == 0)
+                {
+                    /* Disable the BUF IT */
+                    I2C1->CR2 &= (uint16_t)~I2C_IT_BUF;
+                }
+            }
+            SR1Register = 0;
+            SR2Register = 0;
+        }
+        /* If BTF and TXE are set (EV8_2), program the STOP */
+        if ((SR1Register &0x0084) == 0x0084)
+        {
+
+            /* Program the STOP */
+            I2C1->CR1 |= CR1_STOP_Set;
+            /* Disable EVT IT In order to not have again a BTF IT */
+            I2C1->CR2 &= (uint16_t)~I2C_IT_EVT;
+            SR1Register = 0;
+            SR2Register = 0;
+        }
+        /* If RXNE is set */
+        if ((SR1Register &0x0040) == 0x0040)
+        {
+            /* Read the data register */
+            IIC_Buffer_Rx[Rx_Idx1++] = I2C1->DR;
+            /* Decrement the number of bytes to be read */
+            NumbOfBytes1--;
+            /* If it remains only one byte to read, disable ACK and program the STOP (EV7_1) */
+            if (NumbOfBytes1 == 1)
+            {
+                /* Clear ACK */
+                I2C1->CR1 &= CR1_ACK_Reset;
+                /* Program the STOP */
+                I2C1->CR1 |= CR1_STOP_Set;
+            }
+            SR1Register = 0;
+            SR2Register = 0;
+        }
+
+    }
+
+
+}
+
+
+
+/**
+  * @brief  This function handles I2C1 Error interrupt request.
+  * @param  None
+  * @retval : None
+  */
+void I2C1_ER_IRQHandler(void)
+{
+
+    __IO uint32_t SR1Register =0;
+
+    /* Read the I2C1 status register */
+    SR1Register = I2C1->SR1;
+    /* If AF = 1 */
+    if ((SR1Register & 0x0400) == 0x0400)
+    {
+        I2C1->SR1 &= 0xFBFF;
+        SR1Register = 0;
+    }
+    /* If ARLO = 1 */
+    if ((SR1Register & 0x0200) == 0x0200)
+    {
+        I2C1->SR1 &= 0xFBFF;
+        SR1Register = 0;
+    }
+    /* If BERR = 1 */
+    if ((SR1Register & 0x0100) == 0x0100)
+    {
+        I2C1->SR1 &= 0xFEFF;
+        SR1Register = 0;
+    }
+
+    /* If OVR = 1 */
+
+    if ((SR1Register & 0x0800) == 0x0800)
+    {
+        I2C1->SR1 &= 0xF7FF;
+        SR1Register = 0;
+    }
 }

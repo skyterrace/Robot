@@ -1,8 +1,9 @@
 #ifndef __MPU6050DMP_H
 #define __MPU6050DMP_H
 
-/*在使用前，先在预编译符号定义中定义MPU6050和EMPL_TARGET_STM32*/
-
+/*在使用本库前，先在预编译符号定义中定义MPU6050和EMPL_TARGET_STM32*/
+/*在delay.c中也有部分本库需要的代码，注意#if defined MPU6050部分*/
+/*使用DMP功能时，需要在项目选项Target里启用Use MicroLib*/
 
 #include "stm32f10x.h"
 #include "I2CRoutines.h"

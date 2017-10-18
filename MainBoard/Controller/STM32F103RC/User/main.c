@@ -34,22 +34,24 @@ int main(void)
 	RCC_Configuration(); //时钟初始化
 	GPIO_Config(); //端口初始化
 	NVIC_Configuration();  //中断初始化
-	
 	Led_Init(1); //只使用LED2，LED3的引脚可以做其他用途
 	Key_Init(2); //只使用Key1，Key2的引脚可以做其他用途
+	USART2_Init();  //蓝牙串口初始化	
+	
 	while(Key_Released(1)==0);  //如果Key1没有按下，则一直等待
+
 	MotorDriver_Init(4);
 	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
 	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
 	Encoder_Init(4);
-	USART2_Init();  //蓝牙串口初始化
+
 	MotorController_Init(390,60,2);
 	MotorController_Enable(ENABLE);
 	MotorController_SetAcceleration(100);
 
 	
 #if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
-	MPU6050_Init();
+	MPU6050_InitDMP();
 #endif
 
 	Delay_ms(1000);
@@ -125,15 +127,17 @@ int main(void)
 			{
 				if(MPU6050_GetYawPitchRoll(&sMPU6050YawPitchRoll))
 				{
-					USART_OUT(USART2,"%f %f %f\r\n",sMPU6050YawPitchRoll.yaw*180/3.1415926,
-						sMPU6050YawPitchRoll.pitch*180/3.1415926,
-						sMPU6050YawPitchRoll.roll*180/3.1415926);
+					//从串口输出三个角度，转换成整型，并放大10倍，即122代表12.2度
+//					USART_OUT(USART2,"%d %d %d\r\n",(int)(sMPU6050YawPitchRoll.yaw*1800/3.1415926),
+//						(int)(sMPU6050YawPitchRoll.pitch*1800/3.1415926),
+//						(int)(sMPU6050YawPitchRoll.roll*1800/3.1415926));
 				}
 			}
 			else if (n10msCount%2 == 0)  //偶数个10ms时，读取加速度计和陀螺仪数据并通过串口传输
 			{
 				if(MPU6050_ReadRawData(&sIMUVar))
 				{
+					//从串口输出加速度ax,ay,az以及角速度gx,gy,gz
 					USART_OUT(USART2,"%d %d %d %d %d %d\r\n",sIMUVar.ax,sIMUVar.ay,sIMUVar.az,
 						sIMUVar.gx,sIMUVar.gy,sIMUVar.gz);					
 				}
@@ -149,7 +153,7 @@ int main(void)
 				nSpeedCnt = nEncoderBCount - nEncoderBCount_Last;
 				
 				//通过蓝牙串口发送速度
-				USART_OUT(USART2,"%d %d\r\n",nEncoderACount - nEncoderACount_Last,nSpeedCnt);
+				//USART_OUT(USART2,"%d %d\r\n",nEncoderACount - nEncoderACount_Last,nSpeedCnt);
 				
 				//通过蓝牙串口发送累计脉冲数（里程）
 				//USART_OUT(USART2,"%d  %d\r\n",nEncoderACount,nEncoderBCount);

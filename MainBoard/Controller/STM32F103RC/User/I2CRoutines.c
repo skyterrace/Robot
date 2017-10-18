@@ -540,18 +540,31 @@ void I2C_LowLevel_Init(I2C_TypeDef* I2Cx)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     /* Enable the DMA1 clock */
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+		/*I2C1复用PB8，PB9引脚，需要打开复用端口时钟*/
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	
+		//MPU6050的AD0接了PB5，把PB5置零
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);
+		GPIO_ResetBits(GPIOB,GPIO_Pin_5);
+		
     if (I2Cx == I2C1)
     {
         /* I2C1 clock enable */
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
         /* I2C1 SDA and SCL configuration */
-        GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+        GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
         GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
         GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-        GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+			
+				GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
         GPIO_Init(GPIOB, &GPIO_InitStructure);
+			
+				GPIO_PinRemapConfig(GPIO_Remap_I2C1, ENABLE);
+
 
         /* Enable I2C1 reset state */
         RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C1, ENABLE);
