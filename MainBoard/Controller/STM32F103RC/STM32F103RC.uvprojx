@@ -227,7 +227,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>1</useUlib>
+            <useUlib>0</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -461,6 +461,11 @@
               <FileType>1</FileType>
               <FilePath>.\User\MPU6050DMP.c</FilePath>
             </File>
+            <File>
+              <FileName>stdout_user.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\stdout_user.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -538,8 +543,36 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>::Compiler</GroupName>
+        </Group>
       </Groups>
     </Target>
   </Targets>
+
+  <RTE>
+    <apis/>
+    <components>
+      <component Cclass="Compiler" Cgroup="I/O" Csub="STDERR" Cvariant="Breakpoint" Cvendor="Keil" Cversion="1.0.0" condition="ARMCC Cortex-M">
+        <package name="ARM_Compiler" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="Keil" version="1.0.0"/>
+        <targetInfos>
+          <targetInfo name="STM32F103RC"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Compiler" Cgroup="I/O" Csub="STDIN" Cvariant="ITM" Cvendor="Keil" Cversion="1.0.0" condition="ARMCC Cortex-M with ITM">
+        <package name="ARM_Compiler" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="Keil" version="1.0.0"/>
+        <targetInfos>
+          <targetInfo name="STM32F103RC"/>
+        </targetInfos>
+      </component>
+      <component Cclass="Compiler" Cgroup="I/O" Csub="STDOUT" Cvariant="User" Cvendor="Keil" Cversion="1.0.0" condition="ARMCC Cortex-M">
+        <package name="ARM_Compiler" schemaVersion="1.3" url="http://www.keil.com/pack/" vendor="Keil" version="1.0.0"/>
+        <targetInfos>
+          <targetInfo name="STM32F103RC"/>
+        </targetInfos>
+      </component>
+    </components>
+    <files/>
+  </RTE>
 
 </Project>

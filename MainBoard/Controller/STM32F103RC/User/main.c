@@ -131,6 +131,9 @@ int main(void)
 //					USART_OUT(USART2,"%d %d %d\r\n",(int)(sMPU6050YawPitchRoll.yaw*1800/3.1415926),
 //						(int)(sMPU6050YawPitchRoll.pitch*1800/3.1415926),
 //						(int)(sMPU6050YawPitchRoll.roll*1800/3.1415926));
+					printf("%d %d %d\r\n",(int)(sMPU6050YawPitchRoll.yaw*1800/3.1415926),
+						(int)(sMPU6050YawPitchRoll.pitch*1800/3.1415926),
+						(int)(sMPU6050YawPitchRoll.roll*1800/3.1415926));						
 				}
 			}
 			else if (n10msCount%2 == 0)  //偶数个10ms时，读取加速度计和陀螺仪数据并通过串口传输
@@ -138,8 +141,8 @@ int main(void)
 				if(MPU6050_ReadRawData(&sIMUVar))
 				{
 					//从串口输出加速度ax,ay,az以及角速度gx,gy,gz
-					USART_OUT(USART2,"%d %d %d %d %d %d\r\n",sIMUVar.ax,sIMUVar.ay,sIMUVar.az,
-						sIMUVar.gx,sIMUVar.gy,sIMUVar.gz);					
+//					USART_OUT(USART2,"%d %d %d %d %d %d\r\n",sIMUVar.ax,sIMUVar.ay,sIMUVar.az,
+//						sIMUVar.gx,sIMUVar.gy,sIMUVar.gz);					
 				}
 			}
 #endif			
