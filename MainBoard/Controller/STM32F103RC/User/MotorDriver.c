@@ -323,6 +323,7 @@ void Encoder_Init(uint8_t nEncoderCount)
 				TIM_TimeBaseStructure.TIM_Prescaler = 0;
 				TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 				TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+				TIM_TimeBaseStructure.TIM_RepetitionCounter = 0; //TIM8的重复计数器
 
 				TIM_TimeBaseInit(TIM8, &TIM_TimeBaseStructure);
 		
