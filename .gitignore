@@ -19,6 +19,8 @@ $RECYCLE.BIN/
 MainBoard/Hardware/History
 MainBoard/Hardware/Project Logs for MainBoard
 MainBoard/Hardware/Project Outputs for MainBoard
+MainBoard/Hardware/Project Logs for MainBoardV2
+MainBoard/Hardware/Project Outputs for MainBoardV2
 MainBoard/Controller/STM32F103RC/Listings
 MainBoard/Controller/STM32F103RC/Objects
 *.PcbDocPreview
