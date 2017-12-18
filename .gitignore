@@ -23,6 +23,11 @@ MainBoard/Hardware/Project Logs for MainBoardV2
 MainBoard/Hardware/Project Outputs for MainBoardV2
 MainBoard/Controller/STM32F103RC/Listings
 MainBoard/Controller/STM32F103RC/Objects
+MainBoard/Controller/STM32F103VC/Listings
+MainBoard/Controller/STM32F103VC/Objects
+MainBoard/Controller/STM32F407VE/Listings
+MainBoard/Controller/STM32F407VE/Objects
+MainBoard/Controller/STM32F407VE/DebugConfig
 *.PcbDocPreview
 *.SchDocPreview
 MainBoard/Hardware/MainBoard.OutJob
