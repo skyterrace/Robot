@@ -4,10 +4,10 @@
 
 /*µç»úPWMÇý¶¯²¿·Ö
 Ê¹ÓÃTIM1ËÄÂ·PWMÍ¨µÀ¿ØÖÆËÄ¸öµç»ú£¬PA11£¬PA10£¬PA9£¬PA8
-µç»úA£ºIN1-PC9£¬IN2-PA11£¨TIM1-4£©£¬EF-PC8
-µç»úB£ºIN1-PB1£¬IN2-PA10£¨TIM1-3£©£¬EF-PB0
-µç»úC£ºIN1-PC5£¬IN2-PA9£¨TIM1-2£©£¬EF-PC4
-µç»úD£ºIN1-PA5£¬IN2-PA8£¨TIM1-1£©£¬EF-PA4
+µç»úA£ºIN1-PD14£¬IN2-PA11£¨TIM1-4£©£¬EF-PD15
+µç»úB£ºIN1-PD10£¬IN2-PA10£¨TIM1-3£©£¬EF-PD11
+µç»úC£ºIN1-PC8£¬IN2-PA9£¨TIM1-2£©£¬EF-PC9
+µç»úD£ºIN1-PD8£¬IN2-PA8£¨TIM1-1£©£¬EF-PD9
 */
 #define PWM_DUTY_LIMIT 10000  //PWMÕ¼¿Õ±È·¶Î§0~10000£¬²»ÄÜÐ¡ÓÚ5000
 void MotorDriver_Init(uint8_t nMotorCount); //³õÊ¼»¯µç»úÇý¶¯£¬nMotorCount=1£¬³õÊ¼»¯µç»úA£¬nMotor=2£¬³õÊ¼»¯µç»úAºÍB£¬ÒÔ´ËÀàÍÆ£¬´Ó1µ½4
@@ -19,14 +19,20 @@ void MotorDriver_Stop(uint8_t nMotor, uint16_t nDuty); //Í£Ö¹µç»ú£¬nMotor£ºµç»úÐ
 uint8_t MotorDriver_GetMotorState(uint8_t nMotor); //»ñÈ¡µç»únMotorµÄ×´Ì¬£¬0-ÔËÐÐ×´Ì¬£¬1-Í£Ö¹×´Ì¬
 																											 
 /*±àÂëÆ÷²¿·Ö
-Ê¹ÓÃÁËTIM4£¬TIM8£¬TIM3£¬TIM5
-±àÂëÆ÷A£¬A-PB6(TIM4-1)£¬B-PB7£¨TIM4-2£©
-±àÂëÆ÷B£¬A-PC6(TIM8-1)£¬B-PC7£¨TIM8-2£©
-±àÂëÆ÷C£¬A-PA6(TIM3-1)£¬B-PA7£¨TIM3-2£©
-±àÂëÆ÷D£¬A-PA0(TIM5-1)£¬B-PA1£¨TIM5-2£©
+Ê¹ÓÃÁËTIM3£¬TIM2£¬TIM8£¬TIM4
+±àÂëÆ÷A£¬A-PB4(TIM3-1)£¬B-PB5£¨TIM3-2£©£»ÐèÒªremap
+±àÂëÆ÷B£¬A-PA15(TIM2-1)£¬B-PB3£¨TIM2-2£©£»ÐèÒªremap
+±àÂëÆ÷C£¬A-PC6(TIM8-1)£¬B-PC7£¨TIM8-2£©
+±àÂëÆ÷D£¬A-PD12(TIM4-1)£¬B-PD13£¨TIM4-2£©£»ÐèÒªremap
 */
 #define ENC_TIM_ARR 60000
 void Encoder_Init(uint8_t nEncoderCount); //³õÊ¼»¯±àÂëÆ÷£¬nEncoderCount=1£¬³õÊ¼»¯±àÂëÆ÷A£¬=2£¬³õÊ¼»¯±àÂëÆ÷AºÍB£¬ÒÔ´ËÀàÍÆ£¬´Ó1µ½4
 uint16_t Encoder_GetCNT(uint8_t nEncoder); //·µ»Ø±àÂëÆ÷µÄ¼ÆÊýÖµ£¬nEncoder=1·µ»Ø±àÂëÆ÷A£¬ÒÔ´ËÀàÍÆ
 int32_t Encoder_GetEncCount(uint8_t nEncoder);//·µ»Ø±àÂëÆ÷ÀÛ¼Æ¼ÆÊýÖµ£¬32Î»ÓÐ·ûºÅÖµ£¬ÕýÎªÕý×ª£¬¸ºÎª·´×ª¡£×î´ó´ó¸Å20ÒÚ£¬³¤Ê±¼äÔËÐÐ×¢ÒâÒç³ö¡£
+
+#define Encoder_GetCNT1  TIM3->CNT
+#define Encoder_GetCNT2  TIM2->CNT
+#define Encoder_GetCNT3  TIM8->CNT
+#define Encoder_GetCNT4  TIM4->CNT
+
 #endif

@@ -543,12 +543,13 @@ void I2C_LowLevel_Init(I2C_TypeDef* I2Cx)
 		/*I2C1复用PB8，PB9引脚，需要打开复用端口时钟*/
 		RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	
-		//MPU6050的AD0接了PB5，把PB5置零
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		//MPU6050的AD0接了PE0，把PE0置零
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-		GPIO_Init(GPIOB, &GPIO_InitStructure);
-		GPIO_ResetBits(GPIOB,GPIO_Pin_5);
+		GPIO_Init(GPIOE, &GPIO_InitStructure);
+		GPIO_ResetBits(GPIOE,GPIO_Pin_5);
 		
     if (I2Cx == I2C1)
     {

@@ -5,11 +5,15 @@
 #include "MotorDriver.h"
 #include "MotorController.h"
 #include "BTModule.h"
+#include "ADIN.h"
+#include "ServoMotor.h"
+
 
 /*如果不需要用MPU6050，则在项目文件中，将I2CRoutines.c和MPU6050DMP.c源代码文件移除*/
 /*并且在预编译符号定义中将MPU6050和EMPL_TARGET_STM32的符号定义删除*/
 
 #if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+#define USE_MPU6050  //需要使用MPU6050
 #include "MPU6050DMP.h"
 struct dmpYawPitchRoll_s sMPU6050YawPitchRoll;
 struct MPU6050_RawData_s sIMUVar;
@@ -28,6 +32,8 @@ int16_t nSpeedCnt;
 int32_t nEncoderACount,nEncoderACount_Last;
 int32_t nEncoderBCount,nEncoderBCount_Last;
 int32_t nSpeed;
+int16_t nServoAngle;
+int16_t nADValue;
 int main(void)
 {
 
@@ -43,19 +49,28 @@ int main(void)
 	MotorDriver_Init(4);
 	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
 	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
+	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
+	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
 	Encoder_Init(4);
 
-	MotorController_Init(390,60,2);
+	MotorController_Init(390,60,4);
 	MotorController_Enable(ENABLE);
 	MotorController_SetAcceleration(100);
+	
+	//AD初始化
+	ADIN_Init();
+	ADIN_Enable(ENABLE);  //启动AD转换
+	//舵机PWM初始化
+	ServoMotor_Init(4);  //注意超过4个，跟编码器的定时器和端口冲突，只能使用编码器C和D
 
 	
-#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+#if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
 	MPU6050_InitDMP();
 #endif
 
 	Delay_ms(1000);
 	nSpeed = 0;
+	nServoAngle=1000;
 	while(1)
 	{
 		/*
@@ -95,12 +110,16 @@ int main(void)
 			nSpeed += 100;
 			MotorController_SetSpeed(1,nSpeed);
 			MotorController_SetSpeed(2,nSpeed);
+			MotorController_SetSpeed(3,nSpeed);
+			MotorController_SetSpeed(4,nSpeed);
 		}
 		if(Key_Released(2)==1) 
 		{
 			nSpeed -= 100;
 			MotorController_SetSpeed(1,nSpeed);
 			MotorController_SetSpeed(2,nSpeed);
+			MotorController_SetSpeed(3,nSpeed);
+			MotorController_SetSpeed(4,nSpeed);			
 		}
 		
 		if(b10msFlag==1)
@@ -111,18 +130,30 @@ int main(void)
 			//10ms标志每10个计数等于100ms
 			if(n10msCount%10 == 0) b100msFlag = 1;
 			
-			if(n10msCount == 50) //50ms时点亮LED
+			if(n10msCount == 50) //500ms时点亮LED
 			{
 				LED2_ON();
 			}
-			else if(n10msCount>=100)  //100ms时关闭LED，同时计数清零，计算一次速度值
+			else if(n10msCount>=100)  //1000ms时关闭LED，同时计数清零，计算一次速度值
 			{
 				LED2_OFF();
 				n10msCount = 0;
+				
+				//测试AD值
+				nADValue = ADIN_GetValue(1);
+				
+				//测试舵机
+				nServoAngle +=100;
+				if(nServoAngle>2000) nServoAngle=1000;
+				ServoMotor_SetPulse(1,nServoAngle);
+				ServoMotor_SetPulse(2,nServoAngle);
+				ServoMotor_SetPulse(3,nServoAngle);
+				ServoMotor_SetPulse(4,nServoAngle);
+				
 
 			}
 			
-#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+#if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
 			if(n10msCount%2 == 1)  //奇数个10ms时，读取航向角，横滚角，俯仰角
 			{
 				if(MPU6050_GetYawPitchRoll(&sMPU6050YawPitchRoll))
