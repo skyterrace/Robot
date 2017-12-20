@@ -5,9 +5,9 @@
 //使用了定时器6
 #define MOTOR_CONTROLLER_PERIOD 20  //控制周期，单位：ms
 //PID参数初始值，运行中可通过调用函数改变
-#define MOTOR_CONTROLLER_KP 10
-#define MOTOR_CONTROLLER_KI 2
-#define MOTOR_CONTROLLER_KD 3
+#define MOTOR_CONTROLLER_KP 2
+#define MOTOR_CONTROLLER_KI 0.2
+#define MOTOR_CONTROLLER_KD 0.3
 //MotorController_Init() 初始化函数
 //nEncoderResolution编码器分辨率，轮子一圈的脉冲数；nWheelDiameter轮子的直径，单位：mm
 //nMotorCount电机数量，如果为2，则开启A，B电机；如果为4，则开启A、B、C、D四个电机

@@ -61,6 +61,11 @@ void MotorController_Init(uint16_t nEncoderResolution, uint8_t nWheelDiameter,ui
 	MotorController_MotorD_SpeedPWM = PWM_DUTY_LIMIT/2;
 	MotorController_MotorEnabledCount = nMotorCount;
 	
+	MotorController_MotorD_EncCnt = Encoder_GetEncCount(4);
+	MotorController_MotorC_EncCnt = Encoder_GetEncCount(3);
+	MotorController_MotorB_EncCnt = Encoder_GetEncCount(2);
+	MotorController_MotorA_EncCnt = Encoder_GetEncCount(1);
+	
 	//初始化PID参数
 	MotorController_KP = MOTOR_CONTROLLER_KP;
 	MotorController_KI = MOTOR_CONTROLLER_KI;
@@ -114,6 +119,36 @@ void MotorController_SetSpeed(uint8_t nMotor, int16_t nSpeed) //设置轮子转速，nM
 void MotorController_Enable(FunctionalState NewState)
 {
   assert_param(IS_FUNCTIONAL_STATE(NewState));
+	
+	//启用速度调节器前把所有中间变量都清零。
+	MotorController_MotorA_EncCnt = Encoder_GetEncCount(1);
+	MotorController_MotorA_SpeedErr2 = 0;
+	MotorController_MotorA_SpeedErr1 = 0;
+	
+	MotorController_MotorB_EncCnt = Encoder_GetEncCount(2);
+	MotorController_MotorB_SpeedErr2 = 0;
+	MotorController_MotorB_SpeedErr1 = 0;
+
+	MotorController_MotorC_EncCnt = Encoder_GetEncCount(3);
+	MotorController_MotorC_SpeedErr2 = 0;
+	MotorController_MotorC_SpeedErr1 = 0;
+	
+	MotorController_MotorD_EncCnt = Encoder_GetEncCount(4);
+	MotorController_MotorD_SpeedErr2 = 0;
+	MotorController_MotorD_SpeedErr1 = 0;
+	
+	MotorController_MotorA_SpeedSet = 0;
+	MotorController_MotorB_SpeedSet = 0;
+	MotorController_MotorC_SpeedSet = 0;
+	MotorController_MotorD_SpeedSet = 0;
+	MotorController_MotorA_SpeedCur = 0;
+	MotorController_MotorB_SpeedCur = 0;
+	MotorController_MotorC_SpeedCur = 0;
+	MotorController_MotorD_SpeedCur = 0;
+	MotorController_MotorA_SpeedPWM = PWM_DUTY_LIMIT/2;
+	MotorController_MotorB_SpeedPWM = PWM_DUTY_LIMIT/2;
+	MotorController_MotorC_SpeedPWM = PWM_DUTY_LIMIT/2;
+	MotorController_MotorD_SpeedPWM = PWM_DUTY_LIMIT/2;	
   
   if (NewState != DISABLE)
   {

@@ -29,7 +29,7 @@ void ADIN_Init(void)
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 	DMA_DeInit(DMA1_Channel1);
 	DMA_InitStructure.DMA_PeripheralBaseAddr = ADC1_DR_Address; //DMA通道1的地址 
-	DMA_InitStructure.DMA_MemoryBaseAddr = (u32)&ADC_ConvertedValue[0]; //DMA传送地址
+	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&ADC_ConvertedValue[0]; //DMA传送地址
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC; //传送方向
 	DMA_InitStructure.DMA_BufferSize = ADIN_CHN_COUNT;           //传送内存大小，ADIN_CHN_COUNT个16位
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;	 
@@ -54,8 +54,8 @@ void ADIN_Init(void)
 	ADC_Init(ADC1, &ADC_InitStructure);
 	
 	//ADC1规则通道配置
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 1, ADC_SampleTime_239Cycles5);	  //通道11样时间 239.5周期
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 2, ADC_SampleTime_239Cycles5);	  //通道12样时间 239.5周期
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 1, ADC_SampleTime_239Cycles5);	  //PC1对应通道11采样时间 239.5周期
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 2, ADC_SampleTime_239Cycles5);	  //PC2对应通道12样时间 239.5周期
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 3, ADC_SampleTime_239Cycles5);	  //通道13样时间 239.5周期
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 4, ADC_SampleTime_239Cycles5);	  //通道4样时间 239.5周期
 	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 5, ADC_SampleTime_239Cycles5);	  //通道5样时间 239.5周期
@@ -82,7 +82,7 @@ void ADIN_Init(void)
 //AD转换启动/停止
 void ADIN_Enable(FunctionalState NewState)
 {
-	ADC_SoftwareStartConvCmd(ADC1, ENABLE);	//ADC1转换启动
+	ADC_SoftwareStartConvCmd(ADC1, NewState);	//ADC1转换启动
 }
 
 

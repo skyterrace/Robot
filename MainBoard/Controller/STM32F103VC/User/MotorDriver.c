@@ -1,4 +1,5 @@
 #include "MotorDriver.h"
+#include "delay.h"
 static int16_t MotorDirver_Tim3_Update_Count=0;
 static int16_t MotorDirver_Tim2_Update_Count=0;
 static int16_t MotorDirver_Tim8_Update_Count=0;
@@ -147,20 +148,24 @@ void MotorDriver_Start(uint8_t nMotor, uint16_t nDuty)
 	switch (nMotor)
 	{
 		case 4:
-			GPIO_ResetBits(GPIOD,GPIO_Pin_8);
 			TIM1->CCR1 = nDutySet;
+			Delay_ms(1);
+			GPIO_ResetBits(GPIOD,GPIO_Pin_8);
 			break;
 		case 3:
-			GPIO_ResetBits(GPIOC,GPIO_Pin_8);
 			TIM1->CCR2 = nDutySet;
+			Delay_ms(1);
+			GPIO_ResetBits(GPIOC,GPIO_Pin_8);
 			break;
 		case 2:
-			GPIO_ResetBits(GPIOD,GPIO_Pin_10);
 			TIM1->CCR3 = nDutySet;
+			Delay_ms(1);
+			GPIO_ResetBits(GPIOD,GPIO_Pin_10);
 			break;
 		case 1:
-			GPIO_ResetBits(GPIOD,GPIO_Pin_14);
 			TIM1->CCR4 = nDutySet;
+			Delay_ms(1);
+			GPIO_ResetBits(GPIOD,GPIO_Pin_14);
 			break;
 		default:
 			;
@@ -240,15 +245,16 @@ void Encoder_Init(uint8_t nEncoderCount)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
-	//TIM_ICInitTypeDef  TIM_ICInitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;  //NVIC中断向量结构体
 	
 	if(nEncoderCount < 1 || nEncoderCount > 4) return;
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-//	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE); 
-//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-	
+
+	MotorDirver_Tim3_Update_Count=0;
+	MotorDirver_Tim2_Update_Count=0;
+	MotorDirver_Tim8_Update_Count=0;
+	MotorDirver_Tim4_Update_Count=0;	
 	switch (nEncoderCount)
 	{
 		case 4:  //初始化编码器D，A-PD12(TIM4-1)，B-PD13（TIM4-2）；需要remap
@@ -279,7 +285,8 @@ void Encoder_Init(uint8_t nEncoderCount)
 				TIM_ClearFlag(TIM4, TIM_FLAG_Update);
 				TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 				
-				TIM4->CNT = 0;
+				TIM4->CNT = ENC_TIM_ARR/2;
+				MotorDirver_Tim4_Update_Count = 0;
 				TIM_Cmd(TIM4, ENABLE);
 
 		
@@ -311,7 +318,8 @@ void Encoder_Init(uint8_t nEncoderCount)
 				TIM_ClearFlag(TIM8, TIM_FLAG_Update);
 				TIM_ITConfig(TIM8, TIM_IT_Update, ENABLE);
 				
-				TIM8->CNT = 0;
+				TIM8->CNT = ENC_TIM_ARR/2;
+				MotorDirver_Tim8_Update_Count = 0;
 				TIM_Cmd(TIM8, ENABLE);			
 		
 		
@@ -350,7 +358,8 @@ void Encoder_Init(uint8_t nEncoderCount)
 				TIM_ClearFlag(TIM2, TIM_FLAG_Update);
 				TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 				
-				TIM2->CNT = 0;
+				TIM2->CNT = ENC_TIM_ARR/2;
+				MotorDirver_Tim2_Update_Count = 0;
 				TIM_Cmd(TIM2, ENABLE);
 
 		case 1:		//初始化编码器A，A-PB4(TIM3-1)，B-PB5（TIM3-2）；需要remap
@@ -382,17 +391,13 @@ void Encoder_Init(uint8_t nEncoderCount)
 				TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
 		
 				
-				TIM3->CNT = 0;
+				TIM3->CNT = ENC_TIM_ARR/2;
+				MotorDirver_Tim4_Update_Count = 0;
 				TIM_Cmd(TIM3, ENABLE);
 		default:
 				;
 			
 	}
-	
-	MotorDirver_Tim3_Update_Count=0;
-	MotorDirver_Tim2_Update_Count=0;
-	MotorDirver_Tim8_Update_Count=0;
-	MotorDirver_Tim4_Update_Count=0;
 }
 uint16_t Encoder_GetCNT(uint8_t nEncoder)
 {
@@ -436,7 +441,9 @@ void TIM3_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM3,TIM_IT_Update); 
 		//处理中断
-		if(TIM3->CNT>ENC_TIM_ARR/2) MotorDirver_Tim3_Update_Count--;
+//		if(TIM3->CNT>ENC_TIM_ARR/2) MotorDirver_Tim3_Update_Count--;
+//		else 	MotorDirver_Tim3_Update_Count++;
+		if((TIM3->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim3_Update_Count--;
 		else 	MotorDirver_Tim3_Update_Count++;
 	}
 	
@@ -450,7 +457,9 @@ void TIM2_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update); 
 		//处理中断
-		if(TIM2->CNT>ENC_TIM_ARR/2) MotorDirver_Tim2_Update_Count--;
+//		if(TIM2->CNT>ENC_TIM_ARR/2) MotorDirver_Tim2_Update_Count--;
+//		else 	MotorDirver_Tim2_Update_Count++;
+		if((TIM2->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim2_Update_Count--;
 		else 	MotorDirver_Tim2_Update_Count++;
 	}
 	
@@ -464,8 +473,10 @@ void TIM8_UP_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM8,TIM_IT_Update); 
 		//处理中断
-		if(TIM8->CNT>ENC_TIM_ARR/2) MotorDirver_Tim8_Update_Count--;
-		else 	MotorDirver_Tim8_Update_Count++;
+//		if(TIM8->CNT>ENC_TIM_ARR/2) MotorDirver_Tim8_Update_Count--;
+//		else 	MotorDirver_Tim8_Update_Count++;
+		if((TIM8->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim8_Update_Count--;
+		else 	MotorDirver_Tim8_Update_Count++;		
 	}
 	
 }
@@ -478,8 +489,10 @@ void TIM4_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM4,TIM_IT_Update); 
 		//处理中断
-		if(TIM4->CNT>ENC_TIM_ARR/2) MotorDirver_Tim4_Update_Count--;  //向下溢出
-		else 	MotorDirver_Tim4_Update_Count++; //向上溢出
+//		if(TIM4->CNT>ENC_TIM_ARR/2) MotorDirver_Tim4_Update_Count--;  //向下溢出
+//		else 	MotorDirver_Tim4_Update_Count++; //向上溢出
+		if((TIM4->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim4_Update_Count--;  //向下溢出
+		else 	MotorDirver_Tim4_Update_Count++; //向上溢出		
 	}
 	
 }

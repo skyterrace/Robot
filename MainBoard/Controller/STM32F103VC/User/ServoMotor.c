@@ -115,11 +115,12 @@ void ServoMotor_Init(uint8_t nServoCount) //初始化TIM5四路PWM通道
 		case 2:
 		case 1:
 			RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);	
+			RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
 			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
 			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 			GPIO_Init(GPIOA, &GPIO_InitStructure);
-		
+
 			/* Compute the prescaler value */
 			//PrescalerValue的计算方法：系统时钟频率/TIM5计数时钟频率（固定为1MHz） - 1
 			TIM_TimeBaseStructure.TIM_Prescaler = (uint16_t) (SystemCoreClock / 1000000) - 1;
@@ -135,7 +136,7 @@ void ServoMotor_Init(uint8_t nServoCount) //初始化TIM5四路PWM通道
 			/* PWM1 Mode configuration: Channel1 */
 			TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 			TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-			TIM_OCInitStructure.TIM_Pulse = 0;
+			TIM_OCInitStructure.TIM_Pulse = 1000;
 			TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 
 			TIM_OC1Init(TIM5, &TIM_OCInitStructure);
@@ -144,15 +145,17 @@ void ServoMotor_Init(uint8_t nServoCount) //初始化TIM5四路PWM通道
 
 			/* PWM1 Mode configuration: Channel2 */
 			TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-			TIM_OCInitStructure.TIM_Pulse = 0;
+			TIM_OCInitStructure.TIM_Pulse = 1000;
 
 			TIM_OC2Init(TIM5, &TIM_OCInitStructure);
 
 			TIM_OC2PreloadConfig(TIM5, TIM_OCPreload_Enable);
 
 			/* PWM1 Mode configuration: Channel3 */
+			TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 			TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-			TIM_OCInitStructure.TIM_Pulse = 0;
+			TIM_OCInitStructure.TIM_Pulse = 1000;
+			TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 
 			TIM_OC3Init(TIM5, &TIM_OCInitStructure);
 
@@ -160,7 +163,7 @@ void ServoMotor_Init(uint8_t nServoCount) //初始化TIM5四路PWM通道
 
 			/* PWM1 Mode configuration: Channel4 */
 			TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-			TIM_OCInitStructure.TIM_Pulse = 0;
+			TIM_OCInitStructure.TIM_Pulse = 1000;
 
 			TIM_OC4Init(TIM5, &TIM_OCInitStructure);
 
@@ -172,6 +175,7 @@ void ServoMotor_Init(uint8_t nServoCount) //初始化TIM5四路PWM通道
 
 			/* TIM5 enable counter */
 			TIM_Cmd(TIM5, ENABLE);	
+			TIM_CtrlPWMOutputs(TIM5, ENABLE);
 	}
 }
 

@@ -28,6 +28,7 @@ MainBoard/Controller/STM32F103VC/Objects
 MainBoard/Controller/STM32F407VE/Listings
 MainBoard/Controller/STM32F407VE/Objects
 MainBoard/Controller/STM32F407VE/DebugConfig
+*.tlan
 *.PcbDocPreview
 *.SchDocPreview
 MainBoard/Hardware/MainBoard.OutJob

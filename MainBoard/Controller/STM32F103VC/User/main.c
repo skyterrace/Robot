@@ -13,7 +13,7 @@
 /*并且在预编译符号定义中将MPU6050和EMPL_TARGET_STM32的符号定义删除*/
 
 #if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
-#define USE_MPU6050  //需要使用MPU6050
+//#define USE_MPU6050  //需要使用MPU6050
 #include "MPU6050DMP.h"
 struct dmpYawPitchRoll_s sMPU6050YawPitchRoll;
 struct MPU6050_RawData_s sIMUVar;
@@ -43,25 +43,31 @@ int main(void)
 	Led_Init(1); //只使用LED2，LED3的引脚可以做其他用途
 	Key_Init(2); //只使用Key1，Key2的引脚可以做其他用途
 	USART2_Init();  //蓝牙串口初始化	
-	
+
 	while(Key_Released(1)==0);  //如果Key1没有按下，则一直等待
 
 	MotorDriver_Init(4);
-	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
-	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
-	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
-	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
 	Encoder_Init(4);
+	MotorController_Init(390,60,4);	
+	Delay_ms(100);
+	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
 
-	MotorController_Init(390,60,4);
 	MotorController_Enable(ENABLE);
-	MotorController_SetAcceleration(100);
+	MotorController_SetAcceleration(1000);
 	
 	//AD初始化
 	ADIN_Init();
 	ADIN_Enable(ENABLE);  //启动AD转换
 	//舵机PWM初始化
 	ServoMotor_Init(4);  //注意超过4个，跟编码器的定时器和端口冲突，只能使用编码器C和D
+
 
 	
 #if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
@@ -108,14 +114,40 @@ int main(void)
 		if(Key_Released(1)==1) 
 		{
 			nSpeed += 100;
-			MotorController_SetSpeed(1,nSpeed);
-			MotorController_SetSpeed(2,nSpeed);
-			MotorController_SetSpeed(3,nSpeed);
-			MotorController_SetSpeed(4,nSpeed);
+			nSpeed = 0;
+//			MotorController_SetSpeed(1,nSpeed);
+//			MotorController_SetSpeed(2,nSpeed);
+//			MotorController_SetSpeed(3,nSpeed);
+//			MotorController_SetSpeed(4,nSpeed);
+//			Delay_ms(1000);
+			MotorController_Enable(DISABLE);
+			MotorDriver_Stop(1,0);
+			Delay_ms(10);
+			MotorDriver_Stop(2,0);
+			Delay_ms(10);
+			MotorDriver_Stop(3,0);
+			Delay_ms(10);
+			MotorDriver_Stop(4,0);
+//			MotorController_SetSpeed(1,0);
+//			MotorController_SetSpeed(2,0);
+//			MotorController_SetSpeed(3,0);
+//			MotorController_SetSpeed(4,0);
 		}
 		if(Key_Released(2)==1) 
 		{
 			nSpeed -= 100;
+			nSpeed = -500;
+			
+
+	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
+	Delay_ms(100);
+	MotorController_Enable(ENABLE);	
 			MotorController_SetSpeed(1,nSpeed);
 			MotorController_SetSpeed(2,nSpeed);
 			MotorController_SetSpeed(3,nSpeed);
