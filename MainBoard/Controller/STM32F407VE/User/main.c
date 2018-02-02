@@ -6,12 +6,14 @@
 #include "MotorController.h"
 #include "BTModule.h"
 #include "AnalogIn.h"
+#include "DRS3100.h"
 #include "camera/dcmi_ov2640.h"
 
 /*如果不需要用MPU6050，则在项目文件中，将I2CRoutines.c和MPU6050DMP.c源代码文件移除*/
 /*并且在预编译符号定义中将MPU6050和EMPL_TARGET_STM32的符号定义删除*/
 
 #if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+//#define USE_MPU6050
 #include "MPU6050DMP.h"
 struct dmpYawPitchRoll_s sMPU6050YawPitchRoll;
 struct MPU6050_RawData_s sIMUVar;
@@ -32,8 +34,15 @@ int32_t nEncoderBCount,nEncoderBCount_Last;
 int32_t nSpeed;
 uint16_t nVPower;
 extern uint16_t uhADCConvertedValue;
+
+uint32_t JpegDataCnt = 0;
+extern uint8_t JpegBuffer[1024*33];
+#define JpegBufferLen (sizeof(JpegBuffer)/sizeof(char)) //计算JpegBuffer元素总个数
+	
+uint8_t DRS_Buff[18];
 int main(void)
 {
+	uint32_t i = 0;
 
 //	RCC_Configuration(); //时钟初始化
 	GPIO_Config(); //端口初始化
@@ -42,56 +51,66 @@ int main(void)
 	Led_Init(1); //只使用LED2，LED3的引脚可以做其他用途
 	Key_Init(2); //只使用Key1，Key2的引脚可以做其他用途
 	USART2_Init();  //蓝牙串口初始化	
-	
+	DRS3100_Init(DRS3100_I2C);
 	while(Key_Released(1)==0);  //如果Key1没有按下，则一直等待
 
-	MotorDriver_Init(4);
-	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
-	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
-	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
-	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
-	Encoder_Init(4);
+//	MotorDriver_Init(4);
+//	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
+//	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
+//	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
+//	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
+//	Encoder_Init(4);
 
-	MotorController_Init(390,60,4);
-	MotorController_Enable(ENABLE);
-	MotorController_SetAcceleration(100);
+//	MotorController_Init(390,60,4);
+//	MotorController_Enable(ENABLE);
+//	MotorController_SetAcceleration(100);
 
 	
-#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+#if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
 	MPU6050_InitDMP();
 #endif
 
 	Delay_ms(1000);
-	ADC_Config();
-	ADC_SoftwareStartConv(ADCx);
+//	ADC_Config();
+//	ADC_SoftwareStartConv(ADCx);
 	nSpeed = 0;
 
-/*测试摄像头*/
+///*测试摄像头*/
 
-	OV2640_HW_Init();
-	Delay_ms(100);
-	OV2640_Reset();
-	Delay_ms(100);
-	OV2640_IDTypeDef OV2640ID;
-	OV2640_ReadID(&OV2640ID);
-	if(OV2640ID.PIDH  == 0x26)
-  {
-    printf("OV2640 Camera ID 0x%x", OV2640ID.PIDH);
-  }	
-	OV2640_Init(BMP_QQVGA);
-	OV2640_QQVGAConfig();
+//	OV2640_HW_Init();
+//	Delay_ms(100);
+//	OV2640_Reset();
+//	Delay_ms(100);
+//	OV2640_IDTypeDef OV2640ID;
+//	OV2640_ReadID(&OV2640ID);
+//	if(OV2640ID.PIDH  == 0x26)
+//  {
+////    printf("OV2640 Camera ID 0x%x", OV2640ID.PIDH);
+//  }	
+////	OV2640_Init(BMP_QQVGA);
+////	OV2640_QQVGAConfig();
+////	OV2640_Init(BMP_QVGA);
+////	OV2640_QVGAConfig();	
+//	OV2640_Init(JPEG_320x240);
+//	OV2640_Reset();
+//	Delay_ms(100);
+//	OV2640_JPEGConfig(JPEG_320x240);
+//	Delay_ms(100);
+//		OV2640_BrightnessConfig(0x20);	
+////		OV2640_AutoExposure(2);		
+//  /* Enable DMA2 stream 1 and DCMI interface then start image capture */
+//  DMA_Cmd(DMA2_Stream1, ENABLE); 
+//  DCMI_Cmd(ENABLE); 
+
+//  /* Insert 100ms delay: wait 100ms */
+//  Delay_ms(200); 
+
+//  DCMI_CaptureCmd(ENABLE); 	
+////	OV2640_BrightnessConfig(0x20);
+
+//	/*测试摄像头结束*/
 	
-  /* Enable DMA2 stream 1 and DCMI interface then start image capture */
-  DMA_Cmd(DMA2_Stream1, ENABLE); 
-  DCMI_Cmd(ENABLE); 
 
-  /* Insert 100ms delay: wait 100ms */
-  Delay_ms(200); 
-
-  DCMI_CaptureCmd(ENABLE); 	
-	OV2640_BrightnessConfig(0x20);
-
-	/*测试摄像头结束*/
 	
 	while(1)
 	{
@@ -143,6 +162,37 @@ int main(void)
 						MotorController_SetSpeed(3,nSpeed);
 			MotorController_SetSpeed(4,nSpeed);
 		}
+//		if(OV2640_jpg_flag == 1)
+//		{
+//			DCMI_Cmd(DISABLE); 
+//			DCMI_CaptureCmd(DISABLE);
+//			DMA_Cmd(DMA2_Stream1, DISABLE);
+//			if( (JpegBuffer[0]==0xFF)&&(JpegBuffer[1]==0xD8) )
+//			{
+//					while ( !( (JpegBuffer[JpegBufferLen - JpegDataCnt-2]==0xFF) && (JpegBuffer[JpegBufferLen-JpegDataCnt-1]==0xD9) ) ) //从数据包的尾开始检索  
+//				{		
+//					JpegDataCnt++;
+//				}				
+//				 for(i = 0; i < (JpegBufferLen - JpegDataCnt); i++)	//sizeof(JpegBuffer)
+//				{
+//					USART_SendData(USART2, (unsigned char) JpegBuffer[i]);
+//					while( USART_GetFlagStatus(USART2,USART_FLAG_TC)!= SET);
+//				} 
+//			}
+//			JpegDataCnt = 0;
+//				
+//			OV2640_jpg_flag = 0;
+////			printf("jpg flag\r\n");
+//			/* Enable DMA2 stream 1 and DCMI interface then start image capture */
+//			DMA_Cmd(DMA2_Stream1, ENABLE); 
+//			DCMI_Cmd(ENABLE); 
+
+//			/* Insert 100ms delay: wait 100ms */
+//			Delay_ms(200); 
+
+//			DCMI_CaptureCmd(ENABLE); 				
+//			
+//		}
 		
 		if(b10msFlag==1)
 		{
@@ -155,15 +205,17 @@ int main(void)
 			if(n10msCount == 50) //500ms时点亮LED
 			{
 				LED2_ON();
+				
 			}
 			else if(n10msCount>=100)  //1000ms时关闭LED，同时计数清零，计算一次速度值
 			{
 				LED2_OFF();
 				n10msCount = 0;
 				
+				
 			}
 			
-#if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
+#if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
 			if(n10msCount%2 == 1)  //奇数个10ms时，读取航向角，横滚角，俯仰角
 			{
 				if(MPU6050_GetYawPitchRoll(&sMPU6050YawPitchRoll))
@@ -185,8 +237,6 @@ int main(void)
 //					USART_OUT(USART2,"%d %d %d %d %d %d\r\n",sIMUVar.ax,sIMUVar.ay,sIMUVar.az,
 //						sIMUVar.gx,sIMUVar.gy,sIMUVar.gz);					
 				}
-				nVPower = ADC_GetPowerVoltage();
-				printf("Battery Voltage:%d mV\r\n",nVPower);
 			}
 #endif			
 			
@@ -206,11 +256,23 @@ int main(void)
 				
 				nEncoderACount_Last = nEncoderACount;
 				nEncoderBCount_Last = nEncoderBCount;
-				
+				nVPower = ADC_GetPowerVoltage();
+//				printf("Battery Voltage:%d mV\r\n",nVPower);
 				//处理下蓝牙串口接收到的数据
 				USART_Process();
-			
+				
+				//测试DRS3100
+
+				GPIO_SetBits(GPIOB,GPIO_Pin_2);
+				DRS3100_GetPoint139(DRS_Buff);
+				GPIO_ResetBits(GPIOB,GPIO_Pin_2);
+				for(i=0;i<17;i++)
+				{
+					printf("%x,",DRS_Buff[i]);
+				}
+				printf("%x\r\n",DRS_Buff[17]);
 			}
+			
 
 		}
 	}
@@ -299,5 +361,13 @@ void NVIC_Configuration(void)
 void GPIO_Config(void)
 {
 	//使能GPIOA/GPIOC的总线，否则端口不能工作，如果不用这个端口，可以不用使能。
+	GPIO_InitTypeDef GPIO_InitStructure;
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;				 //PB2	
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;				//推挽输出
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 }

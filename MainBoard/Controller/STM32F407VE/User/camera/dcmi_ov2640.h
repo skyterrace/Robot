@@ -154,7 +154,11 @@ void OV2640_BandWConfig(uint8_t BlackWhite);
 void OV2640_ColorEffectsConfig(uint8_t value1, uint8_t value2);
 uint8_t OV2640_WriteReg(uint16_t Addr, uint8_t Data);
 uint8_t OV2640_ReadReg(uint16_t Addr);
+extern uint8_t OV2640_jpg_flag;
 
+
+void OV2640_AutoExposure(uint8_t level);
+void OV2640_WriteRegs(const uint8_t* pbuf);
 #endif /* __DCMI_OV2640_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

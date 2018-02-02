@@ -31,9 +31,12 @@ uint8_t b100msFlag;
 int16_t nSpeedCnt;
 int32_t nEncoderACount,nEncoderACount_Last;
 int32_t nEncoderBCount,nEncoderBCount_Last;
+int32_t nEncoderCCount,nEncoderCCount_Last;
+int32_t nEncoderDCount,nEncoderDCount_Last;
 int32_t nSpeed;
 int16_t nServoAngle;
 int16_t nADValue;
+uint8_t nDir;
 int main(void)
 {
 
@@ -216,13 +219,15 @@ int main(void)
 				//计算下速度
 				nEncoderACount = Encoder_GetEncCount(1);
 				nEncoderBCount = Encoder_GetEncCount(2);
+				nEncoderCCount = Encoder_GetEncCount(3);
+				nEncoderDCount = Encoder_GetEncCount(4);				
 				nSpeedCnt = nEncoderBCount - nEncoderBCount_Last;
 				
 				//通过蓝牙串口发送速度
 				//USART_OUT(USART2,"%d %d\r\n",nEncoderACount - nEncoderACount_Last,nSpeedCnt);
 				
 				//通过蓝牙串口发送累计脉冲数（里程）
-				//USART_OUT(USART2,"%d  %d\r\n",nEncoderACount,nEncoderBCount);
+				USART_OUT(USART2,"%d;  %d;  %d;  %d\r\n",nEncoderACount,nEncoderBCount,nEncoderCCount,nEncoderDCount);
 				
 				nEncoderACount_Last = nEncoderACount;
 				nEncoderBCount_Last = nEncoderBCount;

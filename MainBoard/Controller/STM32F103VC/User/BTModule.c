@@ -10,7 +10,8 @@ void USART2_Init(void)
 	NVIC_InitTypeDef NVIC_InitStructure;  //NVIC中断向量结构体
 	/* config USART2 clock */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	/* USART2 GPIO config */ 
 	/* Configure USART2 Tx (PD.05) as alternate function push-pull */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;

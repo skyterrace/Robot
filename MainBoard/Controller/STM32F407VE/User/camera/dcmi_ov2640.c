@@ -1033,17 +1033,22 @@ void OV2640_HW_Init(void)
   
   /* DCMI GPIO configuration */
   /* D0..D4(PC6/7/PE0/1/4), HSYNC(PA4) */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | 
-                                GPIO_Pin_12 | GPIO_Pin_14| GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
-  GPIO_Init(GPIOH, &GPIO_InitStructure);
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_4;
+  GPIO_Init(GPIOE, &GPIO_InitStructure);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
 
   /* D5..D7(PB6/8/9), VSYNC(PB7) */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_5;
-  GPIO_Init(GPIOI, &GPIO_InitStructure);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_7;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
 
   /* PCLK(PA6) */
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
@@ -1051,25 +1056,6 @@ void OV2640_HW_Init(void)
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-  /****** Configures the I2C2 used for OV2640 camera module configuration *****/
- /* I2C2 clock enable */
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
-
-  /* GPIOB clock enable */
-//  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);  //上面已经使能过了
-
-  /* Connect I2C2 pins to AF4 */
-  GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_I2C2);
-  GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_I2C2);
-  
-  /* Configure I2C2 GPIOs */  
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-	
 	/*配置MCO2*/
 	RCC_ClockSecuritySystemCmd(ENABLE);
 
@@ -1087,14 +1073,30 @@ void OV2640_HW_Init(void)
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	RCC_MCO2Config(RCC_MCO2Source_HSE, RCC_MCO2Div_1);// 8MHZ	
+	
+  /****** Configures the I2C2 used for OV2640 camera module configuration *****/
+ /* I2C2 clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
 
+  /* GPIOB clock enable */
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);  //上面已经使能过了
+
+  /* Connect I2C2 pins to AF4 */
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_I2C2);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_I2C2);
+  
+  /* Configure I2C2 GPIOs */  
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
   /* Configure I2C2 */
   /* I2C DeInit */ 
   I2C_DeInit(I2C2);
     
-  /* Enable the I2C peripheral */
-  I2C_Cmd(I2C2, ENABLE);
- 
   /* Set the I2C structure parameters */
   I2C_InitStruct.I2C_Mode = I2C_Mode_I2C;
   I2C_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;
@@ -1105,6 +1107,9 @@ void OV2640_HW_Init(void)
   
   /* Initialize the I2C peripheral w/ selected parameters */
   I2C_Init(I2C2, &I2C_InitStruct);
+	
+	/* Enable the I2C peripheral */
+  I2C_Cmd(I2C2, ENABLE);
 }
 
 /**
@@ -1155,6 +1160,10 @@ void OV2640_Init(ImageFormat_TypeDef ImageFormat)
   DCMI_InitStructure.DCMI_HSPolarity = DCMI_HSPolarity_Low;
   DCMI_InitStructure.DCMI_CaptureRate = DCMI_CaptureRate_All_Frame;
   DCMI_InitStructure.DCMI_ExtendedDataMode = DCMI_ExtendedDataMode_8b;
+	
+	//增加的
+	      DCMI_Init(&DCMI_InitStructure);
+				DCMI_JPEGCmd(ENABLE);
 
   /* Configures the DMA2 to transfer Data from DCMI */
   /* Enable DMA2 clock */
@@ -1178,39 +1187,41 @@ void OV2640_Init(ImageFormat_TypeDef ImageFormat)
   DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
   DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
   DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+	
+			DMA_Init(DMA2_Stream1, &DMA_InitStructure);
 
-  switch(ImageFormat)
-  {
-    case BMP_QQVGA:
-    {
-      /* DCMI configuration */ 
-      DCMI_InitStructure.DCMI_VSPolarity = DCMI_VSPolarity_High;
-      DCMI_Init(&DCMI_InitStructure);
+//  switch(ImageFormat)
+//  {
+//    case BMP_QQVGA:
+//    {
+//      /* DCMI configuration */ 
+//      DCMI_InitStructure.DCMI_VSPolarity = DCMI_VSPolarity_High;
+//      DCMI_Init(&DCMI_InitStructure);
 
-      /* DMA2 IRQ channel Configuration */
-      DMA_Init(DMA2_Stream1, &DMA_InitStructure);
-      break;
-    }
-    case BMP_QVGA:
-    {
-      /* DCMI configuration */
-      DCMI_Init(&DCMI_InitStructure);
+//      /* DMA2 IRQ channel Configuration */
+//      DMA_Init(DMA2_Stream1, &DMA_InitStructure);
+//      break;
+//    }
+//    case BMP_QVGA:
+//    {
+//      /* DCMI configuration */
+//      DCMI_Init(&DCMI_InitStructure);
 
-      /* DMA2 IRQ channel Configuration */
-      DMA_Init(DMA2_Stream1, &DMA_InitStructure);
-      break;
-    }
-     default:
-    {
-      /* DCMI configuration */ 
-      DCMI_InitStructure.DCMI_VSPolarity = DCMI_VSPolarity_High;
-      DCMI_Init(&DCMI_InitStructure);
+//      /* DMA2 IRQ channel Configuration */
+//      DMA_Init(DMA2_Stream1, &DMA_InitStructure);
+//      break;
+//    }
+//     default:
+//    {
+//      /* DCMI configuration */ 
+//      DCMI_InitStructure.DCMI_VSPolarity = DCMI_VSPolarity_High;
+//      DCMI_Init(&DCMI_InitStructure);
 
-      /* DMA2 IRQ channel Configuration */
-      DMA_Init(DMA2_Stream1, &DMA_InitStructure);
-      break;
-    }
-  }
+//      /* DMA2 IRQ channel Configuration */
+//      DMA_Init(DMA2_Stream1, &DMA_InitStructure);
+//      break;
+//    }
+//  }
 
   NVIC_InitTypeDef NVIC_InitStructure;	
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
@@ -1431,6 +1442,88 @@ void OV2640_ContrastConfig(uint8_t value1, uint8_t value2)
   OV2640_WriteReg(0x7d, 0x06);
 }
 
+const static uint8_t OV2640_AUTOEXPOSURE_LEVEL0[]=
+{
+	0xFF,	0x01,	0xff,
+	0x24,	0x20,	0xff,
+	0x25,	0x18,	0xff,
+	0x26,	0x60,	0xff,
+	0x00,	0x00,	0x00
+};
+
+const static uint8_t OV2640_AUTOEXPOSURE_LEVEL1[]=
+{
+	0xFF,	0x01,	0xff,
+	0x24,	0x34,	0xff,
+	0x25,	0x1c,	0xff,
+	0x26,	0x70,	0xff,
+	0x00,	0x00,	0x00
+};
+const static uint8_t OV2640_AUTOEXPOSURE_LEVEL2[]=
+{
+	0xFF,	0x01,	0xff,
+	0x24,	0x3e,	0xff,
+	0x25,	0x38,	0xff,
+	0x26,	0x81,	0xff,
+	0x00,	0x00,	0x00
+};
+const static uint8_t OV2640_AUTOEXPOSURE_LEVEL3[]=
+{
+	0xFF,	0x01,	0xff,
+	0x24,	0x48,	0xff,
+	0x25,	0x40,	0xff,
+	0x26,	0x81,	0xff,
+	0x00,	0x00,	0x00
+};
+const static uint8_t OV2640_AUTOEXPOSURE_LEVEL4[]=
+{
+	0xFF,	0x01,	0xff,
+	0x24,	0x58,	0xff,
+	0x25,	0x50,	0xff,
+	0x26,	0x92,	0xff,
+	0x00,	0x00,	0x00
+};
+
+void OV2640_AutoExposure(uint8_t level)
+{
+	switch(level)
+	{
+		case 0:
+			OV2640_WriteRegs(OV2640_AUTOEXPOSURE_LEVEL0);
+			break;
+		case 1:
+			OV2640_WriteRegs(OV2640_AUTOEXPOSURE_LEVEL1);
+			break;
+		case 2:
+			OV2640_WriteRegs(OV2640_AUTOEXPOSURE_LEVEL2);
+			break;
+		case 3:
+			OV2640_WriteRegs(OV2640_AUTOEXPOSURE_LEVEL3);
+			break;
+		case 4:
+			OV2640_WriteRegs(OV2640_AUTOEXPOSURE_LEVEL4);
+			break;
+		default:
+			OV2640_WriteRegs(OV2640_AUTOEXPOSURE_LEVEL0);
+			break;
+	}
+	
+}
+
+void OV2640_WriteRegs(const uint8_t* pbuf)
+{
+	while(1)
+	{
+		if((*pbuf == 0) && (*(pbuf + 1) == 0))
+		{
+			break;
+		}
+		else
+		{
+			OV2640_WriteReg(*pbuf++, *pbuf++);
+		}
+	}
+}
 /**
   * @brief  Writes a byte at a specific Camera register
   * @param  Addr: OV2640 register address.
