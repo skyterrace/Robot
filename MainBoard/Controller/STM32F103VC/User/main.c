@@ -7,6 +7,7 @@
 #include "BTModule.h"
 #include "ADIN.h"
 #include "ServoMotor.h"
+#include "PCA9685.h"
 
 
 /*如果不需要用MPU6050，则在项目文件中，将I2CRoutines.c和MPU6050DMP.c源代码文件移除*/
@@ -48,6 +49,16 @@ int main(void)
 	USART2_Init();  //蓝牙串口初始化	
 
 	while(Key_Released(1)==0);  //如果Key1没有按下，则一直等待
+	
+//	//测试舵机板
+//	PCA9685_Init();
+//	Delay_ms(1000);
+//	PCA9685_SetPWMFreq(1600);
+//	while(1)
+//	{
+//		PCA9685_SetPWM(1,200,500);
+//		Delay_ms(100);
+//	}
 
 	MotorDriver_Init(4);
 	Encoder_Init(4);
@@ -63,7 +74,7 @@ int main(void)
 	Delay_ms(100);
 
 	MotorController_Enable(ENABLE);
-	MotorController_SetAcceleration(1000);
+	MotorController_SetAcceleration(200);
 	
 	//AD初始化
 	ADIN_Init();
@@ -117,20 +128,20 @@ int main(void)
 		if(Key_Released(1)==1) 
 		{
 			nSpeed += 100;
-			nSpeed = 0;
-//			MotorController_SetSpeed(1,nSpeed);
-//			MotorController_SetSpeed(2,nSpeed);
-//			MotorController_SetSpeed(3,nSpeed);
-//			MotorController_SetSpeed(4,nSpeed);
+//			nSpeed = 0;
+			MotorController_SetSpeed(1,nSpeed);
+			MotorController_SetSpeed(2,nSpeed);
+			MotorController_SetSpeed(3,nSpeed);
+			MotorController_SetSpeed(4,nSpeed);
 //			Delay_ms(1000);
-			MotorController_Enable(DISABLE);
-			MotorDriver_Stop(1,0);
-			Delay_ms(10);
-			MotorDriver_Stop(2,0);
-			Delay_ms(10);
-			MotorDriver_Stop(3,0);
-			Delay_ms(10);
-			MotorDriver_Stop(4,0);
+//			MotorController_Enable(DISABLE);
+//			MotorDriver_Stop(1,0);
+//			Delay_ms(10);
+//			MotorDriver_Stop(2,0);
+//			Delay_ms(10);
+//			MotorDriver_Stop(3,0);
+//			Delay_ms(10);
+//			MotorDriver_Stop(4,0);
 //			MotorController_SetSpeed(1,0);
 //			MotorController_SetSpeed(2,0);
 //			MotorController_SetSpeed(3,0);
@@ -139,18 +150,18 @@ int main(void)
 		if(Key_Released(2)==1) 
 		{
 			nSpeed -= 100;
-			nSpeed = -500;
-			
+//			nSpeed = -500;
+//			
 
-	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
-	Delay_ms(100);
-	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
-	Delay_ms(100);
-	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
-	Delay_ms(100);
-	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
-	Delay_ms(100);
-	MotorController_Enable(ENABLE);	
+//			MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
+//			Delay_ms(100);
+//			MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
+//			Delay_ms(100);
+//			MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
+//			Delay_ms(100);
+//			MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
+//			Delay_ms(100);
+//			MotorController_Enable(ENABLE);	
 			MotorController_SetSpeed(1,nSpeed);
 			MotorController_SetSpeed(2,nSpeed);
 			MotorController_SetSpeed(3,nSpeed);

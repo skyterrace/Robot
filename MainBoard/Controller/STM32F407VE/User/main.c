@@ -50,20 +50,20 @@ int main(void)
 	Delay_ms(100);
 	Led_Init(1); //只使用LED2，LED3的引脚可以做其他用途
 	Key_Init(2); //只使用Key1，Key2的引脚可以做其他用途
-	USART2_Init();  //蓝牙串口初始化	
-	DRS3100_Init(DRS3100_I2C);
+//	USART2_Init();  //蓝牙串口初始化	
+//	DRS3100_Init(DRS3100_I2C);
 	while(Key_Released(1)==0);  //如果Key1没有按下，则一直等待
 
-//	MotorDriver_Init(4);
-//	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
-//	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
-//	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
-//	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
-//	Encoder_Init(4);
+	MotorDriver_Init(4);
+	MotorDriver_Start(1,PWM_DUTY_LIMIT/2);
+	MotorDriver_Start(2,PWM_DUTY_LIMIT/2);
+	MotorDriver_Start(3,PWM_DUTY_LIMIT/2);
+	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
+	Encoder_Init(4);
 
-//	MotorController_Init(390,60,4);
-//	MotorController_Enable(ENABLE);
-//	MotorController_SetAcceleration(100);
+	MotorController_Init(390,60,4);
+	MotorController_Enable(ENABLE);
+	MotorController_SetAcceleration(100);
 
 	
 #if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
@@ -263,14 +263,14 @@ int main(void)
 				
 				//测试DRS3100
 
-				GPIO_SetBits(GPIOB,GPIO_Pin_2);
-				DRS3100_GetPoint139(DRS_Buff);
-				GPIO_ResetBits(GPIOB,GPIO_Pin_2);
-				for(i=0;i<17;i++)
-				{
-					printf("%x,",DRS_Buff[i]);
-				}
-				printf("%x\r\n",DRS_Buff[17]);
+//				GPIO_SetBits(GPIOB,GPIO_Pin_2);
+//				DRS3100_GetPoint139(DRS_Buff);
+//				GPIO_ResetBits(GPIOB,GPIO_Pin_2);
+//				for(i=0;i<17;i++)
+//				{
+//					printf("%x,",DRS_Buff[i]);
+//				}
+//				printf("%x\r\n",DRS_Buff[17]);
 			}
 			
 

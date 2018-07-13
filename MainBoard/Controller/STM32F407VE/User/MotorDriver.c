@@ -1,4 +1,5 @@
 #include "MotorDriver.h"
+#include "delay.h"
 static int16_t MotorDirver_Tim4_Update_Count=0;
 static int16_t MotorDirver_Tim8_Update_Count=0;
 static int16_t MotorDirver_Tim3_Update_Count=0;
@@ -191,20 +192,24 @@ void MotorDriver_Start(uint8_t nMotor, uint16_t nDuty)
 	switch (nMotor)
 	{
 		case 4:
-			GPIO_ResetBits(GPIOD,GPIO_Pin_8);
 			TIM1->CCR1 = nDutySet;
+			Delay_ms(10);
+			GPIO_ResetBits(GPIOD,GPIO_Pin_8);
 			break;
 		case 3:
-			GPIO_ResetBits(GPIOC,GPIO_Pin_8);
 			TIM1->CCR2 = nDutySet;
+			Delay_ms(10);		
+			GPIO_ResetBits(GPIOC,GPIO_Pin_8);
 			break;
 		case 2:
-			GPIO_ResetBits(GPIOD,GPIO_Pin_10);
 			TIM1->CCR3 = nDutySet;
+			Delay_ms(10);			
+			GPIO_ResetBits(GPIOD,GPIO_Pin_10);
 			break;
 		case 1:
-			GPIO_ResetBits(GPIOD,GPIO_Pin_14);
 			TIM1->CCR4 = nDutySet;
+			Delay_ms(10);			
+			GPIO_ResetBits(GPIOD,GPIO_Pin_14);
 			break;
 		default:
 			;
@@ -331,7 +336,7 @@ void Encoder_Init(uint8_t nEncoderCount)
 		
 		case 3:   //初始化编码器C，A-PC6(TIM8-1)，B-PC7（TIM8-2）
 				RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-				RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+				RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
 		
 			  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;
 				GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
@@ -481,8 +486,10 @@ void TIM4_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM4,TIM_IT_Update); 
 		//处理中断
-		if(TIM4->CNT>ENC_TIM_ARR/2) MotorDirver_Tim4_Update_Count--;  //向下溢出
-		else 	MotorDirver_Tim4_Update_Count++; //向上溢出
+//		if(TIM4->CNT>ENC_TIM_ARR/2) MotorDirver_Tim4_Update_Count--;  //向下溢出
+//		else 	MotorDirver_Tim4_Update_Count++; //向上溢出
+		if((TIM4->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim4_Update_Count--;  //向下溢出
+		else 	MotorDirver_Tim4_Update_Count++; //向上溢出				
 	}
 	
 }
@@ -494,8 +501,11 @@ void TIM8_UP_TIM13_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM8,TIM_IT_Update); 
 		//处理中断
-		if(TIM8->CNT>ENC_TIM_ARR/2) MotorDirver_Tim8_Update_Count--;
-		else 	MotorDirver_Tim8_Update_Count++;
+//		if(TIM8->CNT>ENC_TIM_ARR/2) MotorDirver_Tim8_Update_Count--;
+//		else 	MotorDirver_Tim8_Update_Count++;
+		if((TIM8->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim8_Update_Count--;
+		else 	MotorDirver_Tim8_Update_Count++;			
+		
 	}
 	
 }
@@ -507,8 +517,10 @@ void TIM3_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM3,TIM_IT_Update); 
 		//处理中断
-		if(TIM3->CNT>ENC_TIM_ARR/2) MotorDirver_Tim3_Update_Count--;
-		else 	MotorDirver_Tim3_Update_Count++;
+//		if(TIM3->CNT>ENC_TIM_ARR/2) MotorDirver_Tim3_Update_Count--;
+//		else 	MotorDirver_Tim3_Update_Count++;
+		if((TIM3->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim3_Update_Count--;
+		else 	MotorDirver_Tim3_Update_Count++;		
 	}
 	
 }
@@ -520,8 +532,10 @@ void TIM2_IRQHandler(void)
 		 //清除中断标志
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update); 
 		//处理中断
-		if(TIM2->CNT>ENC_TIM_ARR/2) MotorDirver_Tim2_Update_Count--;
-		else 	MotorDirver_Tim2_Update_Count++;
+//		if(TIM2->CNT>ENC_TIM_ARR/2) MotorDirver_Tim2_Update_Count--;
+//		else 	MotorDirver_Tim2_Update_Count++;
+		if((TIM2->CR1 & TIM_CounterMode_Down) == TIM_CounterMode_Down) MotorDirver_Tim2_Update_Count--;
+		else 	MotorDirver_Tim2_Update_Count++;		
 	}
 	
 }

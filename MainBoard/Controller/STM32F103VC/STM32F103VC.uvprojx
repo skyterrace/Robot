@@ -476,6 +476,11 @@
               <FileType>1</FileType>
               <FilePath>.\User\ServoMotor.c</FilePath>
             </File>
+            <File>
+              <FileName>PCA9685.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\User\PCA9685.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

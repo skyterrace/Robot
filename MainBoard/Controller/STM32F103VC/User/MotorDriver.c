@@ -149,22 +149,22 @@ void MotorDriver_Start(uint8_t nMotor, uint16_t nDuty)
 	{
 		case 4:
 			TIM1->CCR1 = nDutySet;
-			Delay_ms(1);
+			Delay_ms(2);
 			GPIO_ResetBits(GPIOD,GPIO_Pin_8);
 			break;
 		case 3:
 			TIM1->CCR2 = nDutySet;
-			Delay_ms(1);
+			Delay_ms(2);
 			GPIO_ResetBits(GPIOC,GPIO_Pin_8);
 			break;
 		case 2:
 			TIM1->CCR3 = nDutySet;
-			Delay_ms(1);
+			Delay_ms(2);
 			GPIO_ResetBits(GPIOD,GPIO_Pin_10);
 			break;
 		case 1:
 			TIM1->CCR4 = nDutySet;
-			Delay_ms(1);
+			Delay_ms(2);
 			GPIO_ResetBits(GPIOD,GPIO_Pin_14);
 			break;
 		default:
