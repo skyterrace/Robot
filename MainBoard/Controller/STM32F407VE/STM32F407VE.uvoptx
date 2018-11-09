@@ -212,7 +212,7 @@
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>JpegBuffer[0]</ItemText>
+          <ItemText>nSpeed,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
@@ -228,6 +228,16 @@
           <count>4</count>
           <WinNumber>1</WinNumber>
           <ItemText>sMPU6050YawPitchRoll</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>MotorController_MotorC_EncCnt,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>MotorController_MotorC_SpeedErr1</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

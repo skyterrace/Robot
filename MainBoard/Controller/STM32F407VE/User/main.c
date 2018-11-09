@@ -13,7 +13,7 @@
 /*并且在预编译符号定义中将MPU6050和EMPL_TARGET_STM32的符号定义删除*/
 
 #if defined MPU6050  //只有用MPU6050的时候才需要增加此部分代码
-//#define USE_MPU6050
+//#define USE_MPU6050  //如果要用MPU6050，去掉注释，后续相关代码会编译
 #include "MPU6050DMP.h"
 struct dmpYawPitchRoll_s sMPU6050YawPitchRoll;
 struct MPU6050_RawData_s sIMUVar;
@@ -27,31 +27,30 @@ void GPIO_Config(void); //通用输入输出端口配置
 //全局变量
 uint16_t n10msCount;
 uint8_t b100msFlag;
+uint16_t n100msCount;
 
 int16_t nSpeedCnt;
 int32_t nEncoderACount,nEncoderACount_Last;
 int32_t nEncoderBCount,nEncoderBCount_Last;
 int32_t nSpeed;
+
 uint16_t nVPower;
 extern uint16_t uhADCConvertedValue;
 
-uint32_t JpegDataCnt = 0;
-extern uint8_t JpegBuffer[1024*33];
-#define JpegBufferLen (sizeof(JpegBuffer)/sizeof(char)) //计算JpegBuffer元素总个数
-	
 uint8_t DRS_Buff[18];
 int main(void)
 {
-	uint32_t i = 0;
+	n100msCount = 0;
 
 //	RCC_Configuration(); //时钟初始化
 	GPIO_Config(); //端口初始化
 	NVIC_Configuration();  //中断初始化
-	Delay_ms(100);
+	Delay_ms(1000);
 	Led_Init(1); //只使用LED2，LED3的引脚可以做其他用途
 	Key_Init(2); //只使用Key1，Key2的引脚可以做其他用途
 //	USART2_Init();  //蓝牙串口初始化	
 //	DRS3100_Init(DRS3100_I2C);
+	
 	while(Key_Released(1)==0);  //如果Key1没有按下，则一直等待
 
 	MotorDriver_Init(4);
@@ -61,57 +60,21 @@ int main(void)
 	MotorDriver_Start(4,PWM_DUTY_LIMIT/2);
 	Encoder_Init(4);
 
-	MotorController_Init(390,60,4);
+	MotorController_Init(3360,60,4);  //初始化调速器，参数1：轮子转一圈输出的脉冲个数；参数2：轮子直径，单位mm；参数3：几个电机需要调速
 	MotorController_Enable(ENABLE);
-	MotorController_SetAcceleration(100);
+	MotorController_SetAcceleration(5000);  //设置加速度值，单位：mm/秒*秒
 
 	
 #if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
 	MPU6050_InitDMP();
 #endif
 
+
 	Delay_ms(1000);
 //	ADC_Config();
 //	ADC_SoftwareStartConv(ADCx);
 	nSpeed = 0;
 
-///*测试摄像头*/
-
-//	OV2640_HW_Init();
-//	Delay_ms(100);
-//	OV2640_Reset();
-//	Delay_ms(100);
-//	OV2640_IDTypeDef OV2640ID;
-//	OV2640_ReadID(&OV2640ID);
-//	if(OV2640ID.PIDH  == 0x26)
-//  {
-////    printf("OV2640 Camera ID 0x%x", OV2640ID.PIDH);
-//  }	
-////	OV2640_Init(BMP_QQVGA);
-////	OV2640_QQVGAConfig();
-////	OV2640_Init(BMP_QVGA);
-////	OV2640_QVGAConfig();	
-//	OV2640_Init(JPEG_320x240);
-//	OV2640_Reset();
-//	Delay_ms(100);
-//	OV2640_JPEGConfig(JPEG_320x240);
-//	Delay_ms(100);
-//		OV2640_BrightnessConfig(0x20);	
-////		OV2640_AutoExposure(2);		
-//  /* Enable DMA2 stream 1 and DCMI interface then start image capture */
-//  DMA_Cmd(DMA2_Stream1, ENABLE); 
-//  DCMI_Cmd(ENABLE); 
-
-//  /* Insert 100ms delay: wait 100ms */
-//  Delay_ms(200); 
-
-//  DCMI_CaptureCmd(ENABLE); 	
-////	OV2640_BrightnessConfig(0x20);
-
-//	/*测试摄像头结束*/
-	
-
-	
 	while(1)
 	{
 		/*
@@ -146,12 +109,13 @@ int main(void)
 //		if(Key_Released(1)==1) nMotorDir = (nMotorDir == 1) ? 0 : 1;
 //		if(nMotorDir==1) {MotorDriver_SetPWMDuty(2,10000);}
 //		else {MotorDriver_SetPWMDuty(2,0);}
+
 		if(Key_Released(1)==1) 
 		{
 			nSpeed += 100;
 			MotorController_SetSpeed(1,nSpeed);
 			MotorController_SetSpeed(2,nSpeed);
-						MotorController_SetSpeed(3,nSpeed);
+			MotorController_SetSpeed(3,nSpeed);
 			MotorController_SetSpeed(4,nSpeed);
 		}
 		if(Key_Released(2)==1) 
@@ -159,40 +123,9 @@ int main(void)
 			nSpeed -= 100;
 			MotorController_SetSpeed(1,nSpeed);
 			MotorController_SetSpeed(2,nSpeed);
-						MotorController_SetSpeed(3,nSpeed);
+			MotorController_SetSpeed(3,nSpeed);
 			MotorController_SetSpeed(4,nSpeed);
 		}
-//		if(OV2640_jpg_flag == 1)
-//		{
-//			DCMI_Cmd(DISABLE); 
-//			DCMI_CaptureCmd(DISABLE);
-//			DMA_Cmd(DMA2_Stream1, DISABLE);
-//			if( (JpegBuffer[0]==0xFF)&&(JpegBuffer[1]==0xD8) )
-//			{
-//					while ( !( (JpegBuffer[JpegBufferLen - JpegDataCnt-2]==0xFF) && (JpegBuffer[JpegBufferLen-JpegDataCnt-1]==0xD9) ) ) //从数据包的尾开始检索  
-//				{		
-//					JpegDataCnt++;
-//				}				
-//				 for(i = 0; i < (JpegBufferLen - JpegDataCnt); i++)	//sizeof(JpegBuffer)
-//				{
-//					USART_SendData(USART2, (unsigned char) JpegBuffer[i]);
-//					while( USART_GetFlagStatus(USART2,USART_FLAG_TC)!= SET);
-//				} 
-//			}
-//			JpegDataCnt = 0;
-//				
-//			OV2640_jpg_flag = 0;
-////			printf("jpg flag\r\n");
-//			/* Enable DMA2 stream 1 and DCMI interface then start image capture */
-//			DMA_Cmd(DMA2_Stream1, ENABLE); 
-//			DCMI_Cmd(ENABLE); 
-
-//			/* Insert 100ms delay: wait 100ms */
-//			Delay_ms(200); 
-
-//			DCMI_CaptureCmd(ENABLE); 				
-//			
-//		}
 		
 		if(b10msFlag==1)
 		{
@@ -211,8 +144,6 @@ int main(void)
 			{
 				LED2_OFF();
 				n10msCount = 0;
-				
-				
 			}
 			
 #if defined USE_MPU6050  //只有用MPU6050的时候才需要增加此部分代码
@@ -271,8 +202,45 @@ int main(void)
 //					printf("%x,",DRS_Buff[i]);
 //				}
 //				printf("%x\r\n",DRS_Buff[17]);
+
+				n100msCount++;
+//				if(n100msCount <20)
+//				{
+//					nSpeed = 0;
+//					MotorController_SetSpeed(1,nSpeed);
+//					MotorController_SetSpeed(2,nSpeed);
+//					MotorController_SetSpeed(3,nSpeed);
+//					MotorController_SetSpeed(4,nSpeed);
+//				}
+//				else if(n100msCount <40)
+//				{
+//					nSpeed = 2000;
+//					MotorController_SetSpeed(1,nSpeed);
+//					MotorController_SetSpeed(2,nSpeed);
+//					MotorController_SetSpeed(3,nSpeed);
+//					MotorController_SetSpeed(4,nSpeed);					
+//				}
+//				else if(n100msCount <60)
+//				{
+//					nSpeed = 0;
+//					MotorController_SetSpeed(1,nSpeed);
+//					MotorController_SetSpeed(2,nSpeed);
+//					MotorController_SetSpeed(3,nSpeed);
+//					MotorController_SetSpeed(4,nSpeed);					
+//				}
+//				else if(n100msCount<80)
+//				{
+//					nSpeed = -2000;
+//					MotorController_SetSpeed(1,nSpeed);
+//					MotorController_SetSpeed(2,nSpeed);
+//					MotorController_SetSpeed(3,nSpeed);
+//					MotorController_SetSpeed(4,nSpeed);
+//				}
+//				else
+//				{
+//					n100msCount = 0;
+//				}
 			}
-			
 
 		}
 	}

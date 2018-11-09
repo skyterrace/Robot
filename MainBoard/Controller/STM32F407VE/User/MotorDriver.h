@@ -9,7 +9,7 @@
 电机C：IN1-PC8，IN2-PA9（TIM1-2），EF-PC9
 电机D：IN1-PD8，IN2-PA8（TIM1-1），EF-PD9
 */
-#define PWM_DUTY_LIMIT 10000  //PWM占空比范围0~10000，不能小于5000
+#define PWM_DUTY_LIMIT 20000  //PWM占空比范围0~20000，不能小于10000
 void MotorDriver_Init(uint8_t nMotorCount); //初始化电机驱动，nMotorCount=1，初始化电机A，nMotor=2，初始化电机A和B，以此类推，从1到4
 																			//初始化后，默认电机是停止的，需要用MotorDriver_Start启动电机																				
 void MotorDriver_SetPWMDuty(uint8_t nMotor, uint16_t nDuty); //设置PWM占空比
